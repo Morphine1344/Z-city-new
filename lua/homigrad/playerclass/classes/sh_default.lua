@@ -1,20 +1,15 @@
-local CLASS = player.RegClass("default")
+--- @class DefaultClass : PlayerClass
+local DefaultClass = hg.PlayerClass:Extend({
+    name = "Default"
+})
 
-function CLASS.Off(self)
+
+function DefaultClass:On(ply)
     if CLIENT then return end
+
+    self:SetAppearance(ply)
 end
 
-function CLASS.On(self)
-    if CLIENT then return end
-
-    ApplyAppearance(self)
-end
-
-CLASS.CanUseDefaultPhrase = true
-CLASS.CanEmitRNDSound = true
-CLASS.CanUseGestures = true
-
-function CLASS.Guilt(self, Victim)
+function DefaultClass:Off()
     if CLIENT then return end
 end
-
