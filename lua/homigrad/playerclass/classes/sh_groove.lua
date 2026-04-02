@@ -1,39 +1,90 @@
-local CLASS = player.RegClass("groove")
+--- @class GrooveClass : PlayerClass
+local GrooveClass = hg.PlayerClass:Extend({
+    name = "groove",
+    accessories = false,
+    color = {
+        red = 0,
+        green = 165,
+        blue = 0
+    },
+    subclasses = {
+        OG = {
+            prefixes = {
+                OG = 100
+            },
+            chance = 5,
+            models = {
+                "models/gang_groove_boss/gang_groove_boss.mdl"
+            }
+        },
+        Big = {
+            prefixes = {
+                Big = 100
+            },
+            chance = 20,
+            models = {
+                "models/gang_chem/gang_groove_chem.mdl"
+            }
+        },
+        Lil = {
+            prefixes = {
+                Lil = 100
+            },
+            chance = 75,
+            models = {
+                "models/gang_groove/gang_1.mdl",
+            }
+        }
+    }
+})
 
-function CLASS.Off(self)
-    if CLIENT then return end
+function GrooveClass:On(ply)
+    if CLIENT then
+        return
+    end
+
+    self:SetSubclassesBodygroups({
+        OG = {
+            bodygroups = {
+                glasses = math.random(0, 2),
+                headphone = math.random(0, 2)
+            }
+        },
+        Big = {
+            bodygroups = {
+                cap = math.random(0, 2),
+                mask = math.random(0, 1),
+                arms = math.random(0, 1),
+                arm_clock = math.random(0, 1),
+            }
+        },
+        Lil = {
+            bodygroups = {
+                cap = math.random(0, 1),
+                chain = math.random(0, 1),
+                glasses = math.random(0, 2),
+                mask = math.random(0, 2),
+                arms = math.random(0, 1),
+                arm_clock = math.random(0, 1),
+            }
+        }
+    })
+    local subclass = self:SetSubclass()
+
+    self:SetAppearance(ply, {
+        subMaterial = false
+    })
+    self:SetMdl(ply)
+    self:SetupBodygroups(ply, {
+        bodygroups = subclass.bodygroups
+    })
+    self:SetColor(ply)
+    self:SetName(ply)
 end
 
-local models = {
-    "models/gang_groove/gang_1.mdl",
-    "models/gang_groove/gang_2.mdl",
-    "models/gang_chem/gang_groove_chem.mdl"
-}
-
-local subnames = {
-	"Big ",
-	"Lil ",
-	"OG "
-}
-
-function CLASS.On(self)
-    if CLIENT then return end
-    ApplyAppearance(self,nil,nil,nil,true)
-    local Appearance = self.CurAppearance or hg.Appearance.GetRandomAppearance()
-    Appearance.AAttachments = ""
-    Appearance.AColthes = ""
-	self:SetNWString("PlayerName",subnames[math.random(#subnames)] .. Appearance.AName)
-    self:SetPlayerColor(Color(0,165,0):ToVector())
-    self:SetModel(models[math.random(#models)])
-	for _, bg in ipairs(self:GetBodyGroups()) do
-		self:SetBodygroup(bg.id, math.random(0, bg.num))
-	end
-    
-    local inv = self:GetNetVar("Inventory", {})
-    inv["Weapons"] = inv["Weapons"] or {}
-    inv["Weapons"]["hg_sling"] = true
-    self:SetNetVar("Inventory", inv)
-
-    self:SetSubMaterial()
-    self.CurAppearance = Appearance
+function GrooveClass:Off()
+    if CLIENT then
+        return
+    end
 end
+
