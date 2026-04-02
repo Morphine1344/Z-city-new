@@ -3,9 +3,14 @@ local TerroristClass = hg.PlayerClass:Extend({
     name = "terrorist",
     accessories = {
         attachments = {
-            "arctic_balaclava",
-            "phoenix_balaclava",
-            "bandana"
+            random = {
+                "arctic_balaclava",
+                "phoenix_balaclava",
+                "bandana",
+            },
+            required = {
+                "terrorist_band",
+            }
         }
     }
 })
