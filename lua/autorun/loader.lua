@@ -75,6 +75,14 @@ local function Run()
 	print("Loading zcity...") -- Loading homigrad :]
 	hg.loaded = false
 	if engine.ActiveGamemode() == "ixhl2rp" then return end
+
+	local classesDir = "homigrad/playerclass/"
+    if file.Exists(classesDir .. "sh_base.lua", "LUA") then
+        if SERVER then AddCSLuaFile(classesDir .. "sh_base.lua") end
+        include(classesDir .. "sh_base.lua")
+        print("[Z-City] OOP Base system initialized.")
+    end
+	
 	IncludeDir("homigrad")
 	hg.loaded = true
 	print("Loaded zcity, " .. tostring(math.Round(SysTime() - time, 5)) .. " seconds needed")
