@@ -1,71 +1,82 @@
-local CLASS = player.RegClass("police")
+---@class PoliceClass : PlayerClass
+local PoliceClass = hg.PlayerClass:Extend({
+    name = "police",
+    models = {
+        ["Male 01"] = "models/monolithservers/mpd/male_01.mdl",
+        ["Male 02"] = "models/monolithservers/mpd/male_02.mdl",
+        ["Male 03"] = "models/monolithservers/mpd/male_03.mdl",
+        ["Male 04"] = "models/monolithservers/mpd/male_04.mdl",
+        ["Male 05"] = "models/monolithservers/mpd/male_05.mdl",
+        ["Male 06"] = "models/monolithservers/mpd/male_06.mdl",
+        ["Male 07"] = "models/monolithservers/mpd/male_07.mdl",
+        ["Male 08"] = "models/monolithservers/mpd/male_08.mdl",
+        ["Male 09"] = "models/monolithservers/mpd/male_09.mdl"
+    },
+    accessories = false,
+    color = {
+        red = 10,
+        green = 10,
+        blue = 100
+    },
+    subclasses = {
+        Sergeant = {
+            prefixes = {
+                Sergeant = 100
+            },
+            chance = 5,
+            bodygroups = {
+                ranks = 2
+            }
+        },
+        Corporal = {
+            prefixes = {
+                Corporal = 100
+            },
+            chance = 20,
+            bodygroups = {
+                ranks = 1
+            }
+        },
+        Officer = {
+            prefixes = {
+                Officer = 100
+            },
+            chance = 75,
+            bodygroups = {
+                ranks = 3
+            }
+        }
+    }
+})
 
-function CLASS.Off(self)
-    if CLIENT then return end
-end
-
-local models = {
-    -- Male
-    ["male 01"] = "models/monolithservers/mpd/male_01.mdl",
-    ["male 03"] = "models/monolithservers/mpd/male_03.mdl",
-    ["male 04"] = "models/monolithservers/mpd/male_04_2.mdl",
-    ["male 05"] = "models/monolithservers/mpd/male_05.mdl",
-    ["male 07"] = "models/monolithservers/mpd/male_07_2.mdl",
-    ["male 08"] = "models/monolithservers/mpd/male_08.mdl",
-    ["male 09"] = "models/monolithservers/mpd/male_09_2.mdl",
-    -- FEMKI
-}
-
-local ranks = {
-    {name = "Chief", chance = 5},
-    {name = "Cmdr.", chance = 5},
-    {name = "Cpt.", chance = 15},
-    {name = "Lt.", chance = 35},
-    {name = "Sgt.", chance = 45},
-    {name = "Officer", chance = 80}
-}
-
-local clr = Color(10, 10, 100):ToVector()
-function CLASS.On(self)
-    if CLIENT then return end
-    ApplyAppearance(self,nil,nil,nil,true)
-    local Appearance = self.CurAppearance
-    Appearance.AAttachments = ""
-    Appearance.AColthes = ""
-
-    local randomValue = math.random(100)
-    local cumulativeChance = 0
-    local rank = "Officer"
-
-    for _, rankInfo in ipairs(ranks) do
-        cumulativeChance = cumulativeChance + rankInfo.chance
-        if randomValue <= cumulativeChance then
-            rank = rankInfo.name
-            break
-        end
+function PoliceClass:On(ply)
+    if CLIENT then
+        return
     end
 
-    self:SetNWString("PlayerName", rank .. " " .. Appearance.AName)
-    self:SetPlayerColor(clr)
-    self:SetModel(models[string.lower(Appearance.AModel)] or table.Random(models))
-    self:SetBodyGroups("000000000000000000")
-    self:SetSubMaterial()
-    self:SetNetVar("Accessories", Appearance.AAttachmets or "none")
-    self.CurAppearance = Appearance
+    self:SetSubclass()
+
+    self:SetAppearance(ply, {
+        subMaterial = false
+    })
+    self:SetMdl(ply)
+    
+    self:SetupBodygroups(ply, {
+        bodygroups = {
+            headgear = math.random(0, 2),
+            shades = math.random(0, 3),
+            mask = 0,
+            belt = 0,
+            armour = 0,
+            ranks = self.subclass.bodygroups.ranks
+        }
+    })
+    self:SetColor(ply)
+    self:SetName(ply)
 end
 
-function CLASS.Guilt(self, Victim)
-    if CLIENT then return end
-
-    if Victim:GetPlayerClass() == self:GetPlayerClass() then
-        --self:ChatPrint("You killed your teammate!")
-        return 1
+function PoliceClass:Off()
+    if CLIENT then
+        return
     end
-
-    if CurrentRound().name == "hmcd" then
-        return zb.ForcesAttackedInnocent(self, Victim)
-    end
-
-    return 1
 end
-
