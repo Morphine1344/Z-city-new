@@ -1,84 +1,80 @@
-local CLASS = player.RegClass("nationalguard")
+--- @class NationalGuardClass : PlayerClass
+local NationalGuardClass = hg.PlayerClass:Extend({
+    name = "nationalguard",
+    prefixes = {
+        MAJ = 0.02,
+        CPT = 0.08,
+        ["1LT"] = 0.2,
+        ["2LT"] = 0.3,
+        SMA = 0.5,
+        CSM = 0.7,
+        SGM = 0.9,
+        ["1SG"] = 1.1,
+        MSG = 1.3,
+        SFC = 2.5,
+        SSG = 4.0,
+        SGT = 7.0,
+        CPL = 8.0,
+        SPC = 11.4,
+        PFC = 15.0,
+        PV2 = 18.0,
+        PVT = 29.0
+    },
+    models = {
+        ["Male 01"] = "models/dejtriyev/enhancednatguard/male_01.mdl",
+        ["Male 02"] = "models/dejtriyev/enhancednatguard/male_02.mdl",
+        ["Male 03"] = "models/dejtriyev/enhancednatguard/male_03.mdl",
+        ["Male 04"] = "models/dejtriyev/enhancednatguard/male_04.mdl",
+        ["Male 05"] = "models/dejtriyev/enhancednatguard/male_05.mdl",
+        ["Male 06"] = "models/dejtriyev/enhancednatguard/male_06.mdl",
+        ["Male 07"] = "models/dejtriyev/enhancednatguard/male_07.mdl",
+        ["Male 08"] = "models/dejtriyev/enhancednatguard/male_08.mdl",
+        ["Male 09"] = "models/dejtriyev/enhancednatguard/male_09.mdl"
+    },
+    accessories = false,
+    color = {
+        red = 5,
+        green = 65,
+        blue = 0
+    }
+})
 
-function CLASS.Off(self)
-    if CLIENT then return end
-end
-
-local models = {}
-for i = 1, 9 do
-    table.insert(models,"models/dejtriyev/enhancednatguard/male_0"..i..".mdl")
-end
-
-local ranks = {
-    {name = "PVT", chance = 25},
-    {name = "PV2", chance = 20},
-    {name = "PFC", chance = 18},
-    {name = "SPC", chance = 12},
-    {name = "CPL", chance = 8},
-    {name = "SGT", chance = 7},
-    {name = "SSG", chance = 4},
-    {name = "SFC", chance = 2.5},
-    {name = "MSG", chance = 1.2},
-    {name = "1SG", chance = 0.8},
-    {name = "SGM", chance = 0.5},
-    {name = "CSM", chance = 0.3},
-    {name = "SMA", chance = 0.1},
-    {name = "2LT", chance = 0.3},
-    {name = "1LT", chance = 0.2},
-    {name = "CPT", chance = 0.08},
-    {name = "MAJ", chance = 0.02},
-}
-
-local clr = Color(5, 65, 0):ToVector()
-function CLASS.On(self)
-    if CLIENT then return end
-    ApplyAppearance(self,nil,nil,nil,true)
-    local Appearance = self.CurAppearance or hg.Appearance.GetRandomAppearance()
-    Appearance.AAttachments = ""
-    Appearance.AColthes = ""
-
-    local randomValue = math.random() * 100
-    local cumulativeChance = 0
-    local rank = "PVT"
-
-    for _, rankInfo in ipairs(ranks) do
-        cumulativeChance = cumulativeChance + rankInfo.chance
-        if randomValue <= cumulativeChance then
-            rank = rankInfo.name
-            break
-        end
+function NationalGuardClass:On(ply)
+    if CLIENT then
+        return
     end
 
-    self:SetNWString("PlayerName", rank .. " " .. Appearance.AName)
-    self:SetPlayerColor(clr)
-    self:SetModel(models[math.random(#models)])
-    self:SetBodygroup(0,14)
-    self:SetSubMaterial()
-    self.CurAppearance = Appearance
+    self:SetAppearance(ply, {
+        subMaterial = false
+    })
+
+    self:SetMdl(ply, {
+        skin = math.random(0, 2)
+    })
+    self:SetupBodygroups(ply, {
+        bodygroups = {
+        headgear = 14,
+        ["Helmet Things"] = 0,
+        top = math.random(0, 1),
+        lower = math.random(0, 1),
+        vest = 1,
+        }
+    })
+
+    self:SetColor(ply)
+    self:SetName(ply)
+    self:SetHooks()
+
 end
 
-local function IsLookingAt(ply, targetVec)
-    if not IsValid(ply) or not ply:IsPlayer() then return false end
-    local diff = targetVec - ply:GetShootPos()
-    return ply:GetAimVector():Dot(diff) / diff:Length() >= 0.8 
-end
-
-function CLASS.Guilt(self, Victim)
-    if CLIENT then return end
-
-    if Victim:GetPlayerClass() == self:GetPlayerClass() then
-        --self:ChatPrint("You killed your teammate!")
-        return 1
+function NationalGuardClass:Off()
+    if CLIENT then
+        return
     end
-
-    if CurrentRound().name == "hmcd" then
-        return zb.ForcesAttackedInnocent(self, Victim)
-    end
-
-    return 1
 end
 
-hook.Add("HG_PlayerFootstep", "nationalguard_footsteps", function(ply, pos, foot, sound, volume, rf)
+function NationalGuardClass:SetHooks()
+    hook.Add("HG_PlayerFootstep", "nationalguard_footsteps", function(ply, pos, foot, sound, volume, rf)
 	local chr = hg.GetCurrentCharacter(ply)
 	if ply:Alive() and ply.PlayerClassName == "nationalguard" then
 		local ent = hg.GetCurrentCharacter(ply)
@@ -93,4 +89,6 @@ hook.Add("HG_PlayerFootstep", "nationalguard_footsteps", function(ply, pos, foot
 			return true
 		end
 	end
-end)
+    end)
+end
+
