@@ -1,6 +1,7 @@
 --- @class DefaultClass : PlayerClass
 local DefaultClass = hg.PlayerClass:Extend({
-    name = "Default"
+    name = "Default",
+    accessories = true
 })
 
 
