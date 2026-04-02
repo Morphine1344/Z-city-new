@@ -37,15 +37,15 @@ hg.PlayerClass = {
 hg.PlayerClass.__index = hg.PlayerClass
 
 --------------------------------------------------------------------------------
--- @private
+--- @private
 --------------------------------------------------------------------------------
 
---- К переданным значениям добавляет значения по умолчанию.
---- @private
---- @generic T : table
---- @param input T | nil
---- @param defaults T
---- @return T
+    --- К переданным значениям добавляет значения по умолчанию.
+    --- @private
+    --- @generic T : table
+    --- @param input T | nil
+    --- @param defaults T
+    --- @return T
 local function __AddDefault(input, defaults)
     input = input or {}
     defaults = defaults or {}
@@ -58,40 +58,40 @@ local function __AddDefault(input, defaults)
 end
 
 --------------------------------------------------------------------------------
--- @virtual
+--- @virtual
 --------------------------------------------------------------------------------
 
---- Вызывается при смене или удалении класса у игрока.
---- @protected
---- @virtual
+    --- Вызывается при смене или удалении класса у игрока.
+    --- @protected
+    --- @virtual
 function hg.PlayerClass:Off()
     error("Abstract method \"Off\" must be realised in " .. self.name)
 end
 
---- Вызывается при выдаче класса игроку.
---- @protected
---- @virtual
+    --- Вызывается при выдаче класса игроку.
+    --- @protected
+    --- @virtual
 function hg.PlayerClass:On()
     error("Abstract method \"On\" must be realised in " .. self.name)
 end
 
---- Содержит хуки. Должен вызываться в методе On.
---- @protected
---- @virtual
+    --- Содержит хуки. Должен вызываться в методе On.
+    --- @protected
+    --- @virtual
 function hg.PlayerClass:SetHooks()
     error("Abstract method \"Hooks\" must be realised in " .. self.name)
 end
 
 --------------------------------------------------------------------------------
--- @protected
+--- @protected
 --------------------------------------------------------------------------------
 
---- Создает дочерний класс, наследуя свойства текущего.
---- Регистрирует класс в системе и возвращает финальный объект.
---- @protected
---- @param childTable table|nil Таблица для нового класса
---- @return PlayerClass childTable
---- @return table hgClass
+    --- Создает дочерний класс, наследуя свойства текущего.
+    --- Регистрирует класс в системе и возвращает финальный объект.
+    --- @protected
+    --- @param childTable table|nil Таблица для нового класса
+    --- @return PlayerClass childTable
+    --- @return table hgClass
 function hg.PlayerClass:Extend(childTable)
     childTable = childTable or {}
     setmetatable(childTable, self)
@@ -147,19 +147,19 @@ function hg.PlayerClass:GetAccessoriesAttachments(ply)
     return attachments
 end
 
---- Выдает внешность.
---- @protected
---- @param ply Player
---- @return table
+    --- Выдает внешность.
+    --- @protected
+    --- @param ply Player
+    --- @return table
 function hg.PlayerClass:GetAppearance(ply)
     local appearance = ply.CurAppearance or hg.Appearance.GetRandomAppearance()
 
     return appearance
 end
 
---- Возвращает префикс с шансом.
---- @return string | nil
-function hg.PlayerClass:GetPrefix(parameters)
+    --- Возвращает префикс с шансом.
+    --- @return string | nil
+    function hg.PlayerClass:GetPrefix(parameters)
     parameters = __AddDefault(parameters, {
         prefixes = self.prefixes
     })
@@ -184,10 +184,10 @@ function hg.PlayerClass:GetPrefix(parameters)
     end
 end
 
---- Устанавливает внешность игрока на основе параметров.
---- @protected
---- @param ply Player
---- @param parameters? { subMaterial: boolean }
+    --- Устанавливает внешность игрока на основе параметров.
+    --- @protected
+    --- @param ply Player
+    --- @param parameters? { subMaterial: boolean }
 function hg.PlayerClass:SetAppearance(ply, parameters)
     parameters = __AddDefault(parameters, {
         -- Значения по умолчанию
@@ -203,17 +203,17 @@ function hg.PlayerClass:SetAppearance(ply, parameters)
     end
 end
 
---- Устанавливает цвет игрока.
---- @protected
---- @param ply Player
+    --- Устанавливает цвет игрока.
+    --- @protected
+    --- @param ply Player
 function hg.PlayerClass:SetColor(ply)
     ply:SetPlayerColor(Color(self.color.red, self.color.green, self.color.blue):ToVector())
 end
 
---- Устанавливает модель игрока, выбирая подходящую из списка доступных.
---- @protected
---- @param ply Player
---- @param parameters? { skin: number }
+    --- Устанавливает модель игрока, выбирая подходящую из списка доступных.
+    --- @protected
+    --- @param ply Player
+    --- @param parameters? { skin: number }
 function hg.PlayerClass:SetMdl(ply, parameters)
     -- Значения по умолчанию
     parameters = __AddDefault(parameters, {
@@ -242,9 +242,9 @@ function hg.PlayerClass:SetMdl(ply, parameters)
     end
 end
 
---- Устанавливает имя игрока с префексами и позывными.
---- @protected
---- @param ply Player
+    --- Устанавливает имя игрока с префексами и позывными.
+    --- @protected
+    --- @param ply Player
 function hg.PlayerClass:SetName(ply)
     local name = self:GetAppearance(ply).AName
     local callsign = nil
@@ -269,9 +269,9 @@ function hg.PlayerClass:SetName(ply)
     ply:SetNWString("PlayerName", (prefix and prefix .. " " or "") .. (callsign and callsign .. " " or "") .. name)
 end
 
---- Устанавливает подкласс игрока.
---- @protected
---- @return table | any
+    --- Устанавливает подкласс игрока.
+    --- @protected
+    --- @return table | any
 function hg.PlayerClass:SetSubclass()
     if not self.subclasses or not next(self.subclasses) then
         return error("Class " .. self.name .. " doesn't have any subclasses")
@@ -295,9 +295,9 @@ function hg.PlayerClass:SetSubclass()
     end
 end
 
----Устанавливает бодигруппы для опредленного класса. Использовать, если бодигруппы случайные.
---- @protected
---- @param parameters table
+    ---Устанавливает бодигруппы для опредленного класса. Использовать, если бодигруппы случайные.
+    --- @protected
+    --- @param parameters table
 function hg.PlayerClass:SetSubclassesBodygroups(parameters)
     if not parameters or not next(parameters) then
         return error("Method \"SetSubclassesBodygroups\" was called in " ..
@@ -310,10 +310,10 @@ function hg.PlayerClass:SetSubclassesBodygroups(parameters)
     end
 end
 
---- Устанавливает один бодигрупп по имени.
---- @protected
---- @param ply Player
---- @param parameters { bodygroup: { name: string, value: number } }
+    --- Устанавливает один бодигрупп по имени.
+    --- @protected
+    --- @param ply Player
+    --- @param parameters { bodygroup: { name: string, value: number } }
 function hg.PlayerClass:SetupBodygroup(ply, parameters)
     if not parameters.bodygroup or not next(parameters.bodygroup) then
         return error("Method \"SetupBodygroup\" was called in " ..
@@ -327,12 +327,12 @@ function hg.PlayerClass:SetupBodygroup(ply, parameters)
     end
 end
 
---- Устанавливает несколько бодигруппов по имени.
---- @protected
---- @param ply Player
---- @alias name string # Название (например, "body")
---- @alias value number # Индекс (например, 1)
---- @param parameters { bodygroups: table<name, value> }
+    --- Устанавливает несколько бодигруппов по имени.
+    --- @protected
+    --- @param ply Player
+    --- @alias name string # Название (например, "body")
+    --- @alias value number # Индекс (например, 1)
+    --- @param parameters { bodygroups: table<name, value> }
 function hg.PlayerClass:SetupBodygroups(ply, parameters)
     if not parameters.bodygroups or not next(parameters.bodygroups) then
         return error("Method \"SetupBodygroups\" was called in " ..
