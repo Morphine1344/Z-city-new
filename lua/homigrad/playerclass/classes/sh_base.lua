@@ -242,38 +242,6 @@ function hg.PlayerClass:SetColor(ply)
     ply:SetPlayerColor(Color(self.color.red, self.color.green, self.color.blue):ToVector())
 end
 
-    --- Устанавливает модель игрока, выбирая подходящую из списка доступных.
-    --- @protected
-    --- @param ply Player
-    --- @param parameters? { skin: number }
-function hg.PlayerClass:SetMdl(ply, parameters)
-    -- Значения по умолчанию
-    parameters = __AddDefault(parameters, {
-        skin = 0
-    })
-    local models = (self.subclass and self.subclass.models) or self.models
-    if not models or not next(models) then
-        return error("Class " .. self.name .. " doesn't have any models")
-    end
-    local appearance = self:GetAppearance(ply)
-    local modelKey = appearance.AModel
-
-
-    if not models[modelKey] then
-        local keys = {}
-        for k in pairs(models) do
-            table.insert(keys, k)
-        end
-        modelKey = keys[math.random(#keys)]
-    end
-
-    ply:SetModel(models[modelKey])
-
-    if parameters.skin then
-        ply:SetSkin(parameters.skin)
-    end
-end
-
     --- Устанавливает имя игрока с префексами и позывными.
     --- @protected
     --- @param ply Player
@@ -375,5 +343,37 @@ function hg.PlayerClass:SetupBodygroups(ply, parameters)
         if index ~= -1 then
             ply:SetBodygroup(index, value)
         end
+    end
+end
+
+    --- Устанавливает модель игрока, выбирая подходящую из списка доступных.
+    --- @protected
+    --- @param ply Player
+    --- @param parameters? { skin: number }
+function hg.PlayerClass:SetupModel(ply, parameters)
+    -- Значения по умолчанию
+    parameters = __AddDefault(parameters, {
+        skin = 0
+    })
+    local models = (self.subclass and self.subclass.models) or self.models
+    if not models or not next(models) then
+        return error("Class " .. self.name .. " doesn't have any models")
+    end
+    local appearance = self:GetAppearance(ply)
+    local modelKey = appearance.AModel
+
+
+    if not models[modelKey] then
+        local keys = {}
+        for k in pairs(models) do
+            table.insert(keys, k)
+        end
+        modelKey = keys[math.random(#keys)]
+    end
+
+    ply:SetModel(models[modelKey])
+
+    if parameters.skin then
+        ply:SetSkin(parameters.skin)
     end
 end

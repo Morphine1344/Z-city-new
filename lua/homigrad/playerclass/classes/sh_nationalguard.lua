@@ -48,7 +48,7 @@ function NationalGuardClass:On(ply)
         subMaterial = false
     })
 
-    self:SetMdl(ply, {
+    self:SetupModel(ply, {
         skin = math.random(0, 2)
     })
     self:SetupBodygroups(ply, {

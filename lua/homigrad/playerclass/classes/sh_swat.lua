@@ -24,7 +24,7 @@ function SrtClass:On(ply)
         subMaterial = false
     })
 
-    self:SetMdl(ply)
+    self:SetupModel(ply)
 
     self:SetupBodygroups(ply, {
         bodygroups = {

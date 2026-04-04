@@ -74,7 +74,7 @@ function GrooveClass:On(ply)
     self:SetAppearance(ply, {
         subMaterial = false
     })
-    self:SetMdl(ply)
+    self:SetupModel(ply)
     self:SetupBodygroups(ply, {
         bodygroups = subclass.bodygroups
     })
