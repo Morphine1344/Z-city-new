@@ -227,6 +227,59 @@ end
     end
 end
 
+    ---Выдает игроку Loadout: оружие, снаряжение и броня. Работает и с subclasses, и без них
+    --- @protected
+    --- @param ply Player
+function hg.PlayerClass:GiveLoadout(ply)
+
+    local function giveWeapon(category, ammoMultiplier)
+        local source = (self.subclass.weapons and self.subclass.weapons[category]) or self.weapons[category]
+        
+        if source and #source > 0 then
+            local weapon = ply:Give(source[math.random(#source)], false)
+
+            if ammoMultiplier and IsValid(weapon) and weapon.GetMaxClip1 then
+                local ammoCount = weapon:GetMaxClip1() * ammoMultiplier
+                ply:GiveAmmo(ammoCount, weapon:GetPrimaryAmmoType(), true)
+            end
+        end
+    end
+
+    local function giveEquipment(category)
+        local source = (self.subclass.equipment and self.subclass.equipment[category]) or self.equipment[category]
+
+        if source and #source > 0 then
+            for _, value in pairs(source) do
+                ply:Give(value, true)
+            end
+        end
+    end
+
+    local function giveArmor(category)
+        local source = (self.subclass.equipment and self.subclass.equipment.armor and self.subclass.equipment.armor[category]) or self.equipment.armor[category]
+        if source and #source > 0 then
+            hg.AddArmor(ply, source[math.random(#source)])
+
+            ply:SyncArmor()
+        end
+        
+    end
+
+    giveWeapon("primary", 3)
+    giveWeapon("secondary", 2)
+    giveWeapon("melee")
+    giveWeapon("explosive")
+
+    giveEquipment("medicine")
+    giveEquipment("others")
+
+    giveArmor("helmets")
+    giveArmor("masks")
+    giveArmor("vests")
+
+end
+
+
     --- Устанавливает внешность игрока на основе параметров.
     --- @protected
     --- @param ply Player
@@ -388,3 +441,4 @@ function hg.PlayerClass:SetupModel(ply, parameters)
         ply:SetSkin(parameters.skin)
     end
 end
+
