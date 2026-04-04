@@ -12,6 +12,7 @@
 --- @field primaryWeapons? string[] # Основное оружие
 --- @field secondaryWeapons? string[] # Вторичное оружие
 --- @field equipment? string[] # Cнаряжение
+--- @field npc? {string: table} # Таблица NPC и их команда. TODO: вынести это в другой класс
 hg.PlayerClass = {
     name = "base",
     prefixes = {},
@@ -32,7 +33,38 @@ hg.PlayerClass = {
     subclass = {},
     primaryWeapons = {},
     secondaryWeapons = {},
-    equipment = {}
+    equipment = {},
+    npc = {
+        rebels = {
+            "npc_alyx",
+            "npc_barney",
+            "npc_citizen",
+            "npc_eli",
+            "npc_fisherman",
+            "npc_kleiner",
+            "npc_magnusson",
+            "npc_mossman",
+            "npc_odessa",
+            "npc_rollermine_hacked",
+            "npc_turret_floor_resistance",
+            "npc_vortigaunt"
+        },
+        alliance = {
+            "npc_combine_s",
+            "npc_strider",
+            "npc_metropolice",
+            "npc_hunter",
+            "npc_rollermine",
+            "npc_cscanner",
+            "npc_combinegunship",
+            "npc_combinedropship",
+            "npc_clawscanner",
+            "npc_manhack",
+            "npc_combine_camera",
+            "npc_turret_ceiling",
+            "npc_turret_floor"
+        }
+    }
 }
 hg.PlayerClass.__index = hg.PlayerClass
 
