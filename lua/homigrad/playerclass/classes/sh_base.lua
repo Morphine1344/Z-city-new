@@ -9,9 +9,8 @@
 --- @field subclasses? {string: table } # можеть иметь все те же ключи, что и PlayerClass, кроме name. Если bodygroups должны быть динамичными, то нужно их вынести в отдельный метод, иначе они рандомно выберутся раз и навсегда.
 --- @field subclass? {string: table } # Сюда записывается выбранный subclass из subclasses
 --- @field color? {red: number, green: number, blue: number} Цвет игрока
---- @field primaryWeapons? string[] # Основное оружие
---- @field secondaryWeapons? string[] # Вторичное оружие
---- @field equipment? string[] # Cнаряжение
+--- @field weapons? {primary: table, secondary: table, melee: table, explosive: table} # Оружие
+--- @field equipment? {armor: {helmets: table, masks: table, vests: table}, medicine: table, others: table} # Снаряжение
 --- @field npc? {string: table} # Таблица NPC и их команда. TODO: вынести это в другой класс
 hg.PlayerClass = {
     name = "base",
@@ -31,9 +30,21 @@ hg.PlayerClass = {
     },
     subclasses = {},
     subclass = {},
-    primaryWeapons = {},
-    secondaryWeapons = {},
-    equipment = {},
+    weapons = {
+        primary = {},
+        secondary = {},
+        melee = {},
+        explosive = {}
+    },
+    equipment = {
+        armor = {
+            helmets = {},
+            masks = {},
+            vests = {}
+        },
+        medicine = {},
+        others = {}
+    },
     npc = {
         rebels = {
             "npc_alyx",
