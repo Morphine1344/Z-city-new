@@ -12,6 +12,7 @@
 --- @field weapons? {primary: table, secondary: table, melee: table, explosive: table} # Оружие
 --- @field equipment? {armor: {helmets: table, masks: table, vests: table}, medicine: table, others: table} # Снаряжение
 --- @field npc? {string: table} # Таблица NPC и их команда. TODO: вынести это в другой класс
+--- @field relations? {string: table} # Таблица отношений. NPC: отношение NPC к игрокам friendly/hostile
 hg.PlayerClass = {
     name = "base",
     prefixes = {},
@@ -75,6 +76,12 @@ hg.PlayerClass = {
             "npc_turret_ceiling",
             "npc_turret_floor"
         }
+    },
+    relations = {
+        npc = {
+            friendly = {},
+            hostile = {}
+        }     
     }
 }
 hg.PlayerClass.__index = hg.PlayerClass
@@ -101,7 +108,7 @@ local function __AddDefault(input, defaults)
 end
 
 --------------------------------------------------------------------------------
---- @virtual
+--- @virtual (Abstract)
 --------------------------------------------------------------------------------
 
     --- Вызывается при смене или удалении класса у игрока.
@@ -202,7 +209,7 @@ end
 
     --- Возвращает префикс с шансом.
     --- @return string | nil
-    function hg.PlayerClass:GetPrefix(parameters)
+function hg.PlayerClass:GetPrefix(parameters)
     parameters = __AddDefault(parameters, {
         prefixes = self.prefixes
     })
@@ -279,7 +286,6 @@ function hg.PlayerClass:GiveLoadout(ply)
 
 end
 
-
     --- Устанавливает внешность игрока на основе параметров.
     --- @protected
     --- @param ply Player
@@ -331,6 +337,56 @@ function hg.PlayerClass:SetName(ply)
     end
 
     ply:SetNWString("PlayerName", (prefix and prefix .. " " or "") .. (callsign and callsign .. " " or "") .. name)
+end
+
+    --- Устанавливает отношения между игроком и NPC
+    --- Вызывать внутри метода On
+    --- @protected
+    --- @param ply Player
+    --- @param parameters? {npc: table}
+function hg.PlayerClass:SetNpcRelationships(ply, parameters)
+    parameters = __AddDefault(parameters, {
+        npc = {
+            friendly = self.relations.npc.friendly,
+            hostile = self.relations.npc.hostile
+        }
+    })
+
+    for _, npc in ipairs(ents.FindByClass("npc_*")) do
+        if IsValid(npc) and npc:IsNPC() then
+            self:SetSingleNpcRelationship(ply, npc, parameters)
+        end
+    end
+end
+
+    --- Устанавливает между игроком и одним NPC.
+    --- @protected
+    --- @param ply Player
+    --- @param npc table
+    --- @param parameters {npc: table}
+function hg.PlayerClass:SetSingleNpcRelationship(ply, npc, parameters)
+    if not (IsValid(ply) and IsValid(npc)) then return end
+    
+    local npcClass = npc:GetClass()
+    local npcData = parameters.npc or {}
+    local npcGroups = self.npc or hg.PlayerClass.npc 
+
+    for _, category in pairs(npcData.friendly or {}) do
+        -- Используем npcGroups вместо self.npc
+        if npcGroups[category] and table.HasValue(npcGroups[category], npcClass) then
+            npc:AddEntityRelationship(ply, D_LI, 99)
+            npc:ClearEnemyMemory()
+            return
+        end
+    end
+
+    for _, category in pairs(npcData.hostile or {}) do
+        if npcGroups[category] and table.HasValue(npcGroups[category], npcClass) then
+            npc:AddEntityRelationship(ply, D_HT, 99)
+            npc:ClearEnemyMemory()
+            return
+        end
+    end
 end
 
     --- Устанавливает подкласс игрока.
@@ -442,3 +498,22 @@ function hg.PlayerClass:SetupModel(ply, parameters)
     end
 end
 
+    --- Убирает отношения между игроком и NPC
+    --- Вызывать внутри метода Off
+    --- @protected
+    --- @param ply Player
+    --- @param parameters? {npc: table}
+function hg.PlayerClass:UnsetNpcRelationships(ply, parameters)
+    parameters = __AddDefault(parameters, {
+        npc = {
+            friendly = self.relations.npc.hostile,
+            hostile = self.relations.npc.friendly
+        }
+    })
+
+    for _, npc in ipairs(ents.FindByClass("npc_*")) do
+        if IsValid(npc) and npc:IsNPC() then
+            self:SetSingleNpcRelationship(ply, npc, parameters)
+        end
+    end
+end

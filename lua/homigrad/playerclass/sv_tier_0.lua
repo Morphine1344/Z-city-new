@@ -7,7 +7,7 @@ function Player:SetPlayerClass(value, data)
 	local old = self.PlayerClassName
 	self.PlayerClassNameOld = old
 	old = classList[old]
-	if old and old.Off then old.Off(self) end
+	if old and old.Off then old:Off(self) end
 	self.PlayerClassName = value
 	self:PlayerClassEvent("On", data) -- WHO WRITE THIS SHIT
 	net.Start("setupclass")
@@ -50,6 +50,26 @@ end)
 
 hook.Add("Player Think", "ClassPlyThink", function(ply, time, dtime)
 	ply:PlayerClassEvent("Think", time, dtime)
+end)
+
+hook.Add("OnEntityCreated", "Global_NPC_Relationships", function(ent)
+    if not (IsValid(ent) and ent:IsNPC()) then return end
+
+    timer.Simple(0, function()
+        if not IsValid(ent) then return end
+        
+        for _, ply in player.Iterator() do
+            local className = ply.PlayerClassName
+            if not className then continue end
+
+            local classTable = player.classList and player.classList[className]
+            
+            if classTable and classTable.relations then
+
+                classTable:SetSingleNpcRelationship(ply, ent, classTable.relations)
+            end
+        end
+    end)
 end)
 
 COMMANDS.playerclass = {
