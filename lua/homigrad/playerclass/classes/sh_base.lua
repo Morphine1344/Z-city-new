@@ -359,6 +359,23 @@ function hg.PlayerClass:SetNpcRelationships(ply, parameters)
     end
 end
 
+    --- Устанавливает роль (подкласс) игрока в Q-меню
+    --- @protected
+    --- @param ply Player
+    --- @param parameters? {color: {red: number, green: number, blue: number}} 
+function hg.PlayerClass:SetRole(ply, parameters)
+    parameters = __AddDefault(parameters, {
+        color = {
+            red = self.color.red,
+            green = self.color.green,
+            blue = self.color.blue
+        }
+    })
+    if zb and zb.GiveRole then
+        zb.GiveRole(ply, (self.subclass and self.subclass.name) or self.name, Color(parameters.color.red, parameters.color.green, parameters.color.blue))
+    end
+end
+
     --- Устанавливает между игроком и одним NPC.
     --- @protected
     --- @param ply Player
@@ -405,11 +422,12 @@ function hg.PlayerClass:SetSubclass()
     local roll = math.random() * chance
     local currentChance = 0
 
-    for _, data in pairs(self.subclasses) do
+    for key, data in pairs(self.subclasses) do
         currentChance = currentChance + (data.chance)
 
         if roll <= currentChance then
             self.subclass = data
+            self.subclass["name"] = key
             return data --
         end
     end
