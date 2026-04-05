@@ -197,7 +197,7 @@ function hg.PlayerClass:GetAccessoriesAttachments(ply)
     return attachments
 end
 
-    --- Выдает внешность.
+    --- Возвращает внешность.
     --- @protected
     --- @param ply Player
     --- @return table
