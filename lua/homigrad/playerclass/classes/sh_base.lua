@@ -207,7 +207,8 @@ function hg.PlayerClass:GetAppearance(ply)
     return appearance
 end
 
-    --- Возвращает префикс с шансом.
+    --- Возвращает префикс.
+    --- @param parameters? {prefixes: table}
     --- @return string | nil
 function hg.PlayerClass:GetPrefix(parameters)
     parameters = __AddDefault(parameters, {
