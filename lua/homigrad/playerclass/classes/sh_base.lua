@@ -376,7 +376,7 @@ function hg.PlayerClass:SetRole(ply, parameters)
     end
 end
 
-    --- Устанавливает между игроком и одним NPC.
+    --- Устанавливает отношения между игроком и одним NPC.
     --- @protected
     --- @param ply Player
     --- @param npc table
