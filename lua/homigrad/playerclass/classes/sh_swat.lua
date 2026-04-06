@@ -1,5 +1,5 @@
---- @class SrtClass : PlayerClass
-local SrtClass = hg.PlayerClass:Extend({
+--- @class SwatClass : PlayerClass
+local SwatClass = hg.PlayerClass:Extend({
     name = "swat",
     prefixes = {
         SWAT = 100
@@ -15,7 +15,7 @@ local SrtClass = hg.PlayerClass:Extend({
     }
 })
 
-function SrtClass:On(ply)
+function SwatClass:On(ply)
     if CLIENT then
         return
     end
@@ -46,13 +46,13 @@ function SrtClass:On(ply)
     self:SetHooks()
 end
 
-function SrtClass:Off()
+function SwatClass:Off()
     if CLIENT then
         return
     end
 end
 
-function SrtClass:SetHooks()
+function SwatClass:SetHooks()
     hook.Add("HG_PlayerFootstep", "swat_footsteps", function(ply, pos, foot, sound, volume, rf)
         if ply:Alive() and ply.PlayerClassName == "swat" then
             local ent = hg.GetCurrentCharacter(ply)
