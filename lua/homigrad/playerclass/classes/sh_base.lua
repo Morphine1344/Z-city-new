@@ -6,13 +6,13 @@
 --- @field callsigns? string[] # Позывные в имени игрока
 --- @field models? table<string, string> # Модели
 --- @field accessories? boolean | {attachments: {random: table, required: table }} # Аксессуары. Из таблицы random выдается ОДИН случайный аксессуар. Из таблицы required обязательно выдаются все аксессуары из нее.
---- @field subclasses? {string: table } # можеть иметь все те же ключи, что и PlayerClass, кроме name. Если bodygroups должны быть динамичными, то нужно их вынести в отдельный метод, иначе они рандомно выберутся раз и навсегда.
---- @field subclass? {string: table } # Сюда записывается выбранный subclass из subclasses
---- @field color? {red: number, green: number, blue: number} Цвет игрока
---- @field weapons? {primary: table, secondary: table, melee: table, explosive: table} # Оружие
+--- @field subclasses? table<string, table> # Может иметь все те же ключи, что и PlayerClass, кроме name. Если bodygroups должны быть динамичными, то нужно их вынести в отдельный метод, иначе они рандомно выберутся раз и навсегда.
+--- @field subclass? table # Сюда записывается выбранный subclass из subclasses
+--- @field color? {red: number, green: number, blue: number} # Цвет игрока
+--- @field weapons? { primary: table<string, {chance: number, ammoMultiplier: number, ammoType: string, attachments: {grips: table<string, number>, magwells: table<string, number>, muzzles: table<string, number>, sights: table<string, number>, underbarrel: table<string, number>}}>, secondary: table<string, {chance: number, ammoMultiplier: number, ammoType: string, attachments: {grips: table<string, number>, magwells: table<string, number>, muzzles: table<string, number>, sights: table<string, number>, underbarrel: table<string, number>}}>, melee: table<string, number>, explosive: table<string, number> } # Оружие
 --- @field equipment? {armor: {helmets: table, masks: table, vests: table}, medicine: table, others: table} # Снаряжение
---- @field npc? {string: table} # Таблица NPC и их команда. TODO: вынести это в другой класс
---- @field relations? {string: table} # Таблица отношений. NPC: отношение NPC к игрокам friendly/hostile
+--- @field npc? table<string, string[]> # Таблица NPC и их команда. TODO: вынести это в другой класс
+--- @field relations? { npc: { friendly: string[], hostile: string[] } } # Таблица отношений. NPC: отношение NPC к игрокам friendly/hostile
 hg.PlayerClass = {
     name = "base",
     prefixes = {},
@@ -107,27 +107,68 @@ local function __AddDefault(input, defaults)
     return input
 end
 
+    --- Возвращает случайный ключ из таблицы на основе весов (поля chance или числовых значений)
+    --- @private
+    --- @param tbl table
+    --- @return string | nil
+local function __GetItemWithChance(tbl)
+    local _, value = next(tbl)
+    if type(tbl) == "table" and type(value) == "table" then
+        local totalWeight = 0
+
+        for _, data in pairs(tbl) do
+            totalWeight = totalWeight + (data.chance or (100 / table.Count(tbl)))
+        end
+
+        local roll = math.random() * totalWeight
+        local currentWeight = 0
+
+        for key, data in pairs(tbl) do
+            currentWeight = currentWeight + (data.chance or (100 / table.Count(tbl)))
+            if roll <= currentWeight then
+                return key
+            end
+        end
+
+    elseif type(tbl) == "table" and type(value) == "number" then
+        local totalWeight = 0
+        for _, value in pairs(tbl) do
+            totalWeight = totalWeight + value or (100 / table.Count(tbl))
+        end
+
+        local roll = math.random() * totalWeight
+        local currentChance = 0
+
+        for key, value in pairs(tbl) do
+            currentChance = currentChance + value or (100 / table.Count(tbl))
+            if roll <= currentChance then
+                return key
+            end
+        end
+    end
+end
+
 --------------------------------------------------------------------------------
---- @virtual (Abstract)
+--- @abstract
 --------------------------------------------------------------------------------
 
     --- Вызывается при смене или удалении класса у игрока.
     --- @protected
-    --- @virtual
+    --- @abstract
 function hg.PlayerClass:Off()
     error("Abstract method \"Off\" must be realised in " .. self.name)
 end
 
     --- Вызывается при выдаче класса игроку.
     --- @protected
-    --- @virtual
+    --- @abstract
 function hg.PlayerClass:On()
     error("Abstract method \"On\" must be realised in " .. self.name)
 end
 
     --- Содержит хуки. Должен вызываться в методе On.
     --- @protected
-    --- @virtual
+    --- @abstract
 function hg.PlayerClass:SetHooks()
     error("Abstract method \"Hooks\" must be realised in " .. self.name)
 end
@@ -159,6 +200,7 @@ end
 
     --- Возвращает аксессуары
     --- @protected
+    --- @param ply Player
     --- @return table | nil
 function hg.PlayerClass:GetAccessoriesAttachments(ply)
     local attachments = {}
@@ -218,41 +260,52 @@ function hg.PlayerClass:GetPrefix(parameters)
         return error("Class " .. self.name .. " doesn't have any prefixes")
     end
 
-    local chance = 0
-    for _, value in pairs(parameters.prefixes) do
-        chance = chance + (value)
-    end
-
-    local roll = math.random() * chance
-    local currentChance = 0
-
-    for key, value in pairs(parameters.prefixes) do
-        currentChance = currentChance + value
-        if roll <= currentChance then
-            local prefix = key
-            return prefix
-        end
-    end
+    local prefix = __GetItemWithChance(parameters.prefixes)
+    return prefix
 end
 
-    ---Выдает игроку Loadout: оружие, снаряжение и броня. Работает и с subclasses, и без них
+    --- Выдает игроку Loadout: оружие, снаряжение и броня. Работает и с subclasses, и без них
     --- @protected
     --- @param ply Player
 function hg.PlayerClass:GiveLoadout(ply)
 
-    local function giveWeapon(category, ammoMultiplier)
-        local source = (self.subclass.weapons and self.subclass.weapons[category]) or self.weapons[category]
-        
-        if source and #source > 0 then
-            local weapon = ply:Give(source[math.random(#source)], false)
+    local function giveWeapon(parameters)
+        parameters = __AddDefault(parameters, {
+            category = nil,
+            ammoMultiplier = 3
+        })
+        local source = (self.subclass.weapons and self.subclass.weapons[parameters.category]) or self.weapons[parameters.category]
 
-            if ammoMultiplier and IsValid(weapon) and weapon.GetMaxClip1 then
-                local ammoCount = weapon:GetMaxClip1() * ammoMultiplier
-                ply:GiveAmmo(ammoCount, weapon:GetPrimaryAmmoType(), true)
+        if source and next(source) then
+            
+
+            local weaponName = __GetItemWithChance(source)
+            
+            local weapon = ply:Give(weaponName, false)
+
+            if IsValid(weapon) and source[weaponName] then
+
+                if source[weaponName].attachments then
+                    for _, items in pairs(source[weaponName].attachments) do
+                        if type(items) == "table" and next(items) then
+                            local randomAttachment = __GetItemWithChance(items)
+                            if randomAttachment ~= "nothing" then
+                                hg.AddAttachmentForce(ply, weapon, randomAttachment)
+                            end
+                        end
+                    end
+                end
+
+                if source[weaponName].ammoMultiplier or parameters.ammoMultiplier then
+                    local ammoMultiplier = source[weaponName].ammoMultiplier or parameters.ammoMultiplier
+                    local ammoType = source[weaponName].ammoType or weapon:GetPrimaryAmmoType() -- Есть нюанс: если тип патронов не дефолтный, то игроку придется сменить его через Q-меню.
+
+                    ply:GiveAmmo(weapon:GetMaxClip1() * ammoMultiplier, ammoType, true)
+                end
             end
         end
-    end
-
+    end 
+    
     local function giveEquipment(category)
         local source = (self.subclass.equipment and self.subclass.equipment[category]) or self.equipment[category]
 
@@ -273,10 +326,20 @@ function hg.PlayerClass:GiveLoadout(ply)
         
     end
 
-    giveWeapon("primary", 3)
-    giveWeapon("secondary", 2)
-    giveWeapon("melee")
-    giveWeapon("explosive")
+    giveWeapon({
+        category = "primary",
+        ammoMultiplier = 3
+    })
+    giveWeapon({
+        category = "secondary",
+        ammoMultiplier = 2
+    })
+    giveWeapon({
+        category = "melee",
+    })
+    giveWeapon({
+        category = "explosive",
+    })
 
     giveEquipment("medicine")
     giveEquipment("others")
@@ -313,7 +376,7 @@ function hg.PlayerClass:SetColor(ply)
     ply:SetPlayerColor(Color(self.color.red, self.color.green, self.color.blue):ToVector())
 end
 
-    --- Устанавливает имя игрока с префексами и позывными.
+    --- Устанавливает имя игрока с префиксами и позывными.
     --- @protected
     --- @param ply Player
 function hg.PlayerClass:SetName(ply)
@@ -434,7 +497,7 @@ function hg.PlayerClass:SetSubclass()
     end
 end
 
-    ---Устанавливает бодигруппы для опредленного класса. Использовать, если бодигруппы случайные.
+    --- Устанавливает бодигруппы для определенного класса. Использовать, если бодигруппы случайные.
     --- @protected
     --- @param parameters table
 function hg.PlayerClass:SetSubclassesBodygroups(parameters)
@@ -469,9 +532,7 @@ end
     --- Устанавливает несколько бодигруппов по имени.
     --- @protected
     --- @param ply Player
-    --- @alias name string # Название (например, "body")
-    --- @alias value number # Индекс (например, 1)
-    --- @param parameters { bodygroups: table<name, value> }
+    --- @param parameters { bodygroups: table<string, number> } # Ключ - название (например, "body"), значение - индекс (например, 1)
 function hg.PlayerClass:SetupBodygroups(ply, parameters)
     if not parameters.bodygroups or not next(parameters.bodygroups) then
         return error("Method \"SetupBodygroups\" was called in " ..
