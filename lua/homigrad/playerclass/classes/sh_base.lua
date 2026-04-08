@@ -372,8 +372,12 @@ end
     --- Устанавливает цвет игрока.
     --- @protected
     --- @param ply Player
-function hg.PlayerClass:SetColor(ply)
-    ply:SetPlayerColor(Color(self.color.red, self.color.green, self.color.blue):ToVector())
+    --- @param parameters? { color: table }
+function hg.PlayerClass:SetColor(ply, parameters)
+    parameters = __AddDefault(parameters, {
+        color = self.color
+    })
+    ply:SetPlayerColor(Color(parameters.color.red, parameters.color.green, parameters.color.blue):ToVector())
 end
 
     --- Устанавливает имя игрока с префиксами и позывными.
