@@ -388,20 +388,20 @@ function hg.PlayerClass:SetName(ply)
     local callsign = nil
     local prefix = nil
 
-    if self.prefixes and next(self.prefixes) then
-        prefix = self:GetPrefix({
-            prefixes = self.prefixes
-        })
-    elseif self.subclass.prefixes and next(self.subclass.prefixes) then
+    if self.subclass.prefixes and next(self.subclass.prefixes) then
         prefix = self:GetPrefix({
             prefixes = self.subclass.prefixes
         })
+    elseif self.prefixes and next(self.prefixes) then
+        prefix = self:GetPrefix({
+            prefixes = self.prefixes
+        })
     end
 
-    if self.callsigns and next(self.callsigns) then
+    if self.subclass.callsigns and next(self.subclass.callsigns) then
+        callsign = self.subclass.callsigns[math.random(#self.subclass.callsigns)] 
+    elseif self.callsigns and next(self.callsigns) then
         callsign = self.callsigns[math.random(#self.callsigns)]
-    elseif self.subclass.callsigns and next(self.subclass.callsigns) then
-        callsign = self.subclass.callsigns[math.random(#self.subclass.callsigns)]
     end
 
     ply:SetNWString("PlayerName", (prefix and prefix .. " " or "") .. (callsign and callsign .. " " or "") .. name)
