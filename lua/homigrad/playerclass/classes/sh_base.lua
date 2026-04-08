@@ -249,6 +249,27 @@ function hg.PlayerClass:GetAppearance(ply)
     return appearance
 end
 
+    --- Возвращает позывной.
+    --- @param parameters? {prefixes: table}
+    --- @return string | nil
+function hg.PlayerClass:GetCallsign(parameters)
+    parameters = __AddDefault(parameters, {
+        callsigns = self.callsigns,
+        numberedCallsigns = false
+    })
+    if not parameters.callsigns or not next(parameters.callsigns) then
+        return error("Class " .. self.name .. " doesn't have any prefixes")
+    end
+
+    local callsign = parameters.callsigns[math.random(#parameters.callsigns)]
+
+    if parameters.numberedCallsigns == true then
+        callsign = callsign .. "-" .. math.random(1, 36)
+    end
+
+    return callsign
+end
+
     --- Возвращает префикс.
     --- @param parameters? {prefixes: table}
     --- @return string | nil
@@ -383,10 +404,20 @@ end
     --- Устанавливает имя игрока с префиксами и позывными.
     --- @protected
     --- @param ply Player
-function hg.PlayerClass:SetName(ply)
-    local name = self:GetAppearance(ply).AName
-    local callsign = nil
-    local prefix = nil
+    --- @param parameters? { withName: boolean, numberedCallsigns: boolean }
+function hg.PlayerClass:SetName(ply, parameters)
+    parameters = __AddDefault(parameters, {
+        withName = true,
+        numberedCallsigns = false
+    })
+    
+    local name
+    local callsign
+    local prefix
+
+    if parameters.withName == true then
+        name = self:GetAppearance(ply).AName
+    end
 
     if self.subclass.prefixes and next(self.subclass.prefixes) then
         prefix = self:GetPrefix({
@@ -399,12 +430,17 @@ function hg.PlayerClass:SetName(ply)
     end
 
     if self.subclass.callsigns and next(self.subclass.callsigns) then
-        callsign = self.subclass.callsigns[math.random(#self.subclass.callsigns)] 
+        prefix = self:GetCallsign({
+            callsigns = self.subclass.callsigns,
+            numberedCallsigns = parameters.numberedCallsigns
+        })
     elseif self.callsigns and next(self.callsigns) then
-        callsign = self.callsigns[math.random(#self.callsigns)]
+        prefix = self:GetCallsign({
+            callsigns = self.callsigns,
+            numberedCallsigns = parameters.numberedCallsigns
+        })
     end
-
-    ply:SetNWString("PlayerName", (prefix and prefix .. " " or "") .. (callsign and callsign .. " " or "") .. name)
+    ply:SetNWString("PlayerName", (prefix and prefix .. " " or "") .. (callsign and callsign .. " " or "") .. (name and name or ""))
 end
 
     --- Устанавливает отношения между игроком и NPC
