@@ -188,6 +188,12 @@ function CombineClass:Off(ply)
     self:UnsetNpcRelationships(ply)
 end
 
+function CombineClass:PlayerDeath()
+    if CLIENT then 
+        return
+    end
+end
+
 function CombineClass:SetHooks()
 
     if SERVER then

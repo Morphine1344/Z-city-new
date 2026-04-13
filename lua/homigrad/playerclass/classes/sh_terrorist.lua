@@ -30,6 +30,12 @@ function TerroristClass:Off()
     end
 end
 
+function TerroristClass:PlayerDeath()
+    if CLIENT then 
+        return
+    end
+end
+
 function TerroristClass:SetHooks()
     hook.Add("HG_PlayerFootstep", "terrorist_footsteps", function(ply, pos, foot, sound, volume, rf)
         local chr = hg.GetCurrentCharacter(ply)

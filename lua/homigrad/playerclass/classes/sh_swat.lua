@@ -51,6 +51,12 @@ function SwatClass:Off()
     end
 end
 
+function SwatClass:PlayerDeath()
+    if CLIENT then 
+        return
+    end
+end
+
 function SwatClass:SetHooks()
     hook.Add("HG_PlayerFootstep", "swat_footsteps", function(ply, pos, foot, sound, volume, rf)
         if ply:Alive() and ply.PlayerClassName == SwatClass.name then

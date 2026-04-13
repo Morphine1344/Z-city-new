@@ -231,5 +231,10 @@ function RebelClass:Off(ply)
     self:UnsetRole(ply)
 end
 
+function RebelClass:PlayerDeath()
+    if CLIENT then 
+        return
+    end
+end
 
 

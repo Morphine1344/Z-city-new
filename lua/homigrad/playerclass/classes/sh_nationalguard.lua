@@ -71,6 +71,12 @@ function NationalGuardClass:Off()
     end
 end
 
+function NationalGuardClass:PlayerDeath()
+    if CLIENT then 
+        return
+    end
+end
+
 function NationalGuardClass:SetHooks()
     hook.Add("HG_PlayerFootstep", "nationalguard_footsteps", function(ply, pos, foot, sound, volume, rf)
 	local chr = hg.GetCurrentCharacter(ply)

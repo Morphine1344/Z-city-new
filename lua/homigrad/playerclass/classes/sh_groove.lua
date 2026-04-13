@@ -88,3 +88,9 @@ function GrooveClass:Off()
     end
 end
 
+function GrooveClass:PlayerDeath()
+    if CLIENT then 
+        return
+    end
+end
+

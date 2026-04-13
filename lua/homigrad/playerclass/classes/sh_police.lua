@@ -78,3 +78,9 @@ function PoliceClass:Off()
         return
     end
 end
+
+function PoliceClass:PlayerDeath()
+    if CLIENT then 
+        return
+    end
+end

@@ -6,11 +6,21 @@ local DefaultClass = hg.PlayerClass:Extend({
 
 
 function DefaultClass:On(ply)
-    if CLIENT then return end
+    if CLIENT then
+        return
+    end
 
     self:SetAppearance(ply)
 end
 
 function DefaultClass:Off()
-    if CLIENT then return end
+    if CLIENT then
+        return
+    end
+end
+
+function DefaultClass:PlayerDeath()
+    if CLIENT then 
+        return
+    end
 end

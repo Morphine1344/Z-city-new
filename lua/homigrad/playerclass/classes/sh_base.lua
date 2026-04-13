@@ -166,6 +166,13 @@ function hg.PlayerClass:On()
     error("Abstract method \"On\" must be realised in " .. self.name)
 end
 
+    --- Вызывается при смерте игрока.
+    --- @protected
+    --- @abstract
+function hg.PlayerClass:PlayerDeath()
+    error("Abstract method \"PlayerDeath\" must be realised in " .. self.name)
+end
+
     --- Содержит хуки. Должен вызываться вне методов
     --- @protected
     --- @abstract

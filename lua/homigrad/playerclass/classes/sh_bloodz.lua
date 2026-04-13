@@ -89,3 +89,9 @@ function BloodzClass:Off()
         return
     end
 end
+
+function BloodzClass:PlayerDeath()
+    if CLIENT then 
+        return
+    end
+end
