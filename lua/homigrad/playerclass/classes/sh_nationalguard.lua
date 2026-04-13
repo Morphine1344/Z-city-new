@@ -63,8 +63,6 @@ function NationalGuardClass:On(ply)
 
     self:SetColor(ply)
     self:SetName(ply)
-    self:SetHooks()
-
 end
 
 function NationalGuardClass:Off()
@@ -76,7 +74,7 @@ end
 function NationalGuardClass:SetHooks()
     hook.Add("HG_PlayerFootstep", "nationalguard_footsteps", function(ply, pos, foot, sound, volume, rf)
 	local chr = hg.GetCurrentCharacter(ply)
-	if ply:Alive() and ply.PlayerClassName == "nationalguard" then
+	if ply:Alive() and ply.PlayerClassName == NationalGuardClass.name then
 		local ent = hg.GetCurrentCharacter(ply)
 
 		if not (ply:IsWalking() or ply:Crouching()) and ent == ply then
@@ -91,4 +89,6 @@ function NationalGuardClass:SetHooks()
 	end
     end)
 end
+
+NationalGuardClass:SetHooks()
 

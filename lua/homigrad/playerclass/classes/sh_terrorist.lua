@@ -22,7 +22,6 @@ function TerroristClass:On(ply)
 
     self:SetAppearance(ply)
 
-    self:SetHooks()
 end
 
 function TerroristClass:Off()
@@ -34,7 +33,7 @@ end
 function TerroristClass:SetHooks()
     hook.Add("HG_PlayerFootstep", "terrorist_footsteps", function(ply, pos, foot, sound, volume, rf)
         local chr = hg.GetCurrentCharacter(ply)
-        if ply:Alive() and ply.PlayerClassName == "terrorist" then
+        if ply:Alive() and ply.PlayerClassName == TerroristClass.name then
             local ent = hg.GetCurrentCharacter(ply)
 
             if not (ply:IsWalking() or ply:Crouching()) and ent == ply then
@@ -49,4 +48,6 @@ function TerroristClass:SetHooks()
         end
     end)
 end
+
+TerroristClass:SetHooks()
 

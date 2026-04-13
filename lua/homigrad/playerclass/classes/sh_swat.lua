@@ -43,7 +43,6 @@ function SwatClass:On(ply)
 
     self:SetColor(ply)
     self:SetName(ply)
-    self:SetHooks()
 end
 
 function SwatClass:Off()
@@ -54,7 +53,7 @@ end
 
 function SwatClass:SetHooks()
     hook.Add("HG_PlayerFootstep", "swat_footsteps", function(ply, pos, foot, sound, volume, rf)
-        if ply:Alive() and ply.PlayerClassName == "swat" then
+        if ply:Alive() and ply.PlayerClassName == SwatClass.name then
             local ent = hg.GetCurrentCharacter(ply)
 
             if not (ply:IsWalking() or ply:Crouching()) and ent == ply then
@@ -70,4 +69,6 @@ function SwatClass:SetHooks()
         end
     end)
 end
+
+SwatClass:SetHooks()
 

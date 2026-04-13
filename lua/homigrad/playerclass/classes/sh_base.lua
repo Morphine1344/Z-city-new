@@ -166,7 +166,7 @@ function hg.PlayerClass:On()
     error("Abstract method \"On\" must be realised in " .. self.name)
 end
 
-    --- Содержит хуки. Должен вызываться в методе On.
+    --- Содержит хуки. Должен вызываться вне методов
     --- @protected
     --- @abstract
 function hg.PlayerClass:SetHooks()
@@ -476,7 +476,8 @@ function hg.PlayerClass:SetRole(ply, parameters)
         }
     })
     if zb and zb.GiveRole then
-        zb.GiveRole(ply, (self.subclass and self.subclass.name) or self.name, Color(parameters.color.red, parameters.color.green, parameters.color.blue))
+        local role = zb.GiveRole(ply, (self.subclass and self.subclass.name) or self.name, Color(parameters.color.red, parameters.color.green, parameters.color.blue))
+        return role
     end
 end
 
