@@ -194,7 +194,7 @@ function hg.PlayerClass:Extend(childTable)
     setmetatable(hgClass, {
         __index = childTable
     })
-
+    
     return childTable, hgClass
 end
 
@@ -475,10 +475,13 @@ function hg.PlayerClass:SetRole(ply, parameters)
             blue = self.color.blue
         }
     })
+
+    local role = (self.subclass and self.subclass.name) or self.name
     if zb and zb.GiveRole then
-        local role = zb.GiveRole(ply, (self.subclass and self.subclass.name) or self.name, Color(parameters.color.red, parameters.color.green, parameters.color.blue))
-        return role
+        zb.GiveRole(ply, role, Color(parameters.color.red, parameters.color.green, parameters.color.blue))
     end
+
+    ply:SetNWString("PlayerRole", role)
 end
 
     --- Устанавливает отношения между игроком и одним NPC.
@@ -637,4 +640,17 @@ function hg.PlayerClass:UnsetNpcRelationships(ply, parameters)
             self:SetSingleNpcRelationship(ply, npc, parameters)
         end
     end
+end
+
+    --- Убирает роль (подкласс) игрока в Q-меню.
+    --- Вызывать в методе Off.
+    --- @protected
+    --- @param ply Player
+function hg.PlayerClass:UnsetRole(ply)
+
+    if zb and zb.GiveRole then
+        zb.GiveRole(ply, "")
+    end
+
+    ply:SetNWString("PlayerRole", nil)
 end

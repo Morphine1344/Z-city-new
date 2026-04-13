@@ -224,10 +224,11 @@ function RebelClass:On(ply)
     })
 end
 
-function RebelClass:Off()
+function RebelClass:Off(ply)
     if CLIENT then
         return
     end
+    self:UnsetRole(ply)
 end
 
 
