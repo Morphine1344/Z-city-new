@@ -1,258 +1,169 @@
-
-local CLASS = player.RegClass("Metrocop")
-
-
-local combine_models = {
-    "models/player/police.mdl"
-}
-
-
-local callsigns = {
-    "Officer Alpha","Officer Bravo","Officer Charlie","Officer Delta"
-}
-
-
-local primary_weapons = {
-    "weapon_mp7"
-}
-
-
-local combine_subclasses = {
-    default = {
-        color = Color(24,24,24),
-        models = combine_models,
-        loadout = {
-            {weapon = "weapon_medkit_sh"},
-            {weapon = "weapon_naloxone"},
-            {weapon = "weapon_bigbandage_sh"},
-            {weapon = "weapon_tourniquet"},
-            {weapon = "weapon_hg_stunstick"},
-            {weapon = "weapon_handcuffs"},
-            {weapon = "weapon_handcuffs_key"},
-            {weapon = "weapon_walkie_talkie"},
-            {
-                weapon = "weapon_hk_usp",
-                ammo_mult = 3
-            },
-
-            {
-                weapon_random_pool = primary_weapons,
-                ammo_mult = 3
+--- @class MetrocopClass : PlayerClass
+local MetrocopClass = hg.PlayerClass:Extend({
+    name = "Metrocop",
+    prefixes = {
+        Officer = 100
+    },
+    callsigns = {
+        "Alpha",
+        "Charlie",
+        "Bravo",
+        "Delta"
+    },
+    models = {
+        "models/player/police.mdl"
+    },
+    accessories = false,
+    color = {
+        red = 24,
+        green = 24,
+        blue = 24
+    },
+    weapons = {
+        primary = {
+            weapon_mp7 = {
+                attachments = {
+                    sights = {
+                        holo14 = {}
+                    }
+                }
             }
         },
+        secondary = {
+            weapon_hk_usp = {}
+        },
+        melee = {
+            weapon_hg_stunstick = {}
+        }
+    },
+    equipment = {
+        armor = {
+            helmets = {
+                "metrocop_helmet"
+            },
+            vests = {
+                "metrocop_armor"
+            }
+        },
+        medicine = {
+            "weapon_medkit_sh",
+            "weapon_naloxone",
+            "weapon_bigbandage_sh",
+            "weapon_tourniquet",
+        },
+        others = {
+            "weapon_handcuffs",
+            "weapon_handcuffs_key",
+            "weapon_walkie_talkie"
+        }
+    },
+    relations = {
+        npc = {
+            friendly = {
+                "alliance"
+            },
+            hostile = {
+                "rebels"
+            }
+        }
     }
-}
+})
 
-local combines = {
-    "npc_combine_s",
-    "npc_strider",
-    "npc_metropolice",
-    "npc_hunter",
-    "npc_rollermine",
-    "npc_cscanner",
-    "npc_combinegunship",
-    "npc_combinedropship",
-    "npc_clawscanner",
-    "npc_manhack",
-    "npc_combine_camera",
-    "npc_turret_ceiling",
-    "npc_turret_floor"
-}
+function MetrocopClass:On(ply)
+    if CLIENT then
+        return
+    end
 
-local rebels = {
-    "npc_alyx",
-    "npc_barney",
-    "npc_citizen",
-    "npc_eli",
-    "npc_fisherman",
-    "npc_kleiner",
-    "npc_magnusson",
-    "npc_mossman",
-    "npc_odessa",
-    "npc_rollermine_hacked",
-    "npc_turret_floor_resistance",
-    "npc_vortigaunt"
-}
+    self:SetAppearance(ply, {
+        subMaterial = false
+    })
 
-function CLASS.Off(self)
-    if CLIENT then return end
+    self:SetupModel(ply)
 
-	if eightbit and eightbit.EnableEffect and self.UserID then
-		eightbit.EnableEffect(self:UserID(), 0)
-	end
+    self:SetColor(ply)
 
-    for k,v in ipairs(ents.FindByClass("npc_*")) do
-        if table.HasValue(combines,v:GetClass()) then
-            v:AddEntityRelationship( self, D_HT, 99 )
-        elseif table.HasValue(rebels,v:GetClass()) then
-            v:AddEntityRelationship( self, D_LI, 0 )
+    self:GiveLoadout(ply)
+
+    self:SetRole(ply, {
+        name = "Officer",
+        color = {
+            red = 89,
+            green = 230,
+            blue = 255
+        }
+    })
+
+    self:SetName(ply, {
+        withName = false,
+        numberedCallsigns = true
+    })
+    
+
+    self:SetNpcRelationships(ply)
+end
+
+function MetrocopClass:Off(ply)
+    if CLIENT then
+        return
+    end
+
+    self:UnsetRole(ply)
+
+    self:UnsetNpcRelationships(ply)
+end
+
+function MetrocopClass:PlayerDeath(ply)
+
+    local function playDeathSound(ply)
+
+        if IsValid(ply) and ply.PlayerClassName == MetrocopClass.name then
+            local sounds = {
+                "npc/metropolice/die1.wav",
+                "npc/metropolice/die2.wav",
+                "npc/metropolice/die3.wav",
+                "npc/metropolice/die4.wav"
+            }
+
+            EmitSound(sounds[math.random(#sounds)], ply:GetPos())
         end
     end
 
-	self:SetNWString("PlayerRole", nil)
-    self.organism.CantCheckPulse = nil
-    self.leader = nil
-	hook.Remove("OnEntityCreated", "relation_shipdo"..self:EntIndex())
+    playDeathSound(ply)
+
 end
 
-
-CLASS.NoFreeze = true
-CLASS.CanEmitRNDSound = false
-
-local function giveSubClassLoadout(ply, subclass)
-    local config = combine_subclasses[subclass] or combine_subclasses["default"]
-    ply:StripWeapons()
-    ply:Give("weapon_hands_sh")
-    for _, item in ipairs(config.loadout or {}) do
-        if item.weapon_random_pool then
-            local randWep = item.weapon_random_pool[math.random(#item.weapon_random_pool)]
-            local wep = ply:Give(randWep)
-            if wep and item.ammo_mult then
-                ply:GiveAmmo(wep:GetMaxClip1() * item.ammo_mult, wep:GetPrimaryAmmoType(), true)
-            end
-        else
-            local wep = ply:Give(item.weapon)
-            if IsValid(wep) then
-                --;; патрончики
-                if item.ammo_mult then
-                    ply:GiveAmmo(wep:GetMaxClip1() * item.ammo_mult, wep:GetPrimaryAmmoType(), true)
+function MetrocopClass:SetHooks()
+    if SERVER then
+        
+        hook.Add("HG_ReplacePhrase", "metrocop_phrase", function(ply, phrase, muffed, pitch)
+            if IsValid(ply) and ply.PlayerClassName == MetrocopClass.name then
+                local phrases = {}
+                local files, _ = file.Find("sound/npc/metropolice/vo/*.wav", "GAME")
+                for key, value in ipairs(files) do
+                    phrases[key] = "npc/metropolice/vo/" .. value
                 end
-                --;; пример кастомной какахи 
-                if item.count then
-                    wep.count = item.count
-                end
-                if item.extra_balls then
-                    wep:SetNWInt("Balls", item.extra_balls)
-                end
+                return ply, phrases[math.random(#phrases)], muffed, pitch
             end
-        end
-    end
-end
+        end)
 
-function CLASS.On(self, data)
-    if CLIENT then return end
+        hook.Add("HG_PlayerFootstep", "metrocop_footsteps", function(ply, pos, foot, sound, volume, rf)
+            local chr = hg.GetCurrentCharacter(ply)
 
-	if eightbit and eightbit.EnableEffect and self.UserID then
-		eightbit.EnableEffect(self:UserID(), eightbit.EFF_PROOT) --!! placeholder
-	end
-
-    if IsValid(self.FakeRagdoll) then
-        hg.FakeUp(self, nil, nil, true)
-    end
-
-    ApplyAppearance(self,nil,nil,nil,true)
-    local Appearance = self.CurAppearance or hg.Appearance.GetRandomAppearance()
-    Appearance.AAttachments = ""
-    Appearance.AColthes = ""
-
-    local sub = self.subClass or "default"
-    local cfg = combine_subclasses[sub] or combine_subclasses["default"]
-    local useModel = cfg.models[math.random(#cfg.models)]
-    self:SetModel(useModel)
-    self:SetSubMaterial()
-    self:SetNetVar("Accessories", "")
-    self:SetPlayerColor(cfg.color:ToVector())
-
-    if cfg.skin then
-        self:SetSkin(cfg.skin)
-    end
-
-    self.organism.CantCheckPulse = true
-
-    --;; Армор
-    self.armors = {}
-    self.armors["torso"] = "metrocop_armor"
-    self.armors["head"] = "metrocop_helmet"
-    self:SyncArmor()
-
-    if not data.bNoEquipment then
-        giveSubClassLoadout(self, sub)
-    end
-
-    self.subClass = nil
-    self.organism.recoilmul = 0.85
-
-    local callsign
-    if math.random(1,1000) <= 1 then
-        callsign = "Scug"
-    else
-        callsign = table.Random(callsigns) .. "-" .. math.random(1,25)
-    end
-
-    if zb.GiveRole then zb.GiveRole(self, "Officer", Color(89,230,255)) end
-    self:SetNWString("PlayerName", callsign)
-
-    for k,v in ipairs(ents.FindByClass("npc_*")) do
-        if table.HasValue(combines,v:GetClass()) then
-            v:AddEntityRelationship( self, D_LI, 0 )
-            v:ClearEnemyMemory()
-        elseif table.HasValue(rebels,v:GetClass()) then
-            v:AddEntityRelationship( self, D_HT, 99 )
-            v:ClearEnemyMemory()
-        end
-    end
-
-    local index = self:EntIndex()
-    hook.Add( "OnEntityCreated", "relation_shipdo"..index, function( ent )
-        if not IsValid(self) then hook.Remove("OnEntityCreated","relation_shipdo"..index) return end
-        if ( ent:IsNPC() ) then
-            --print(ent:GetClass())
-            if table.HasValue(combines,ent:GetClass()) then
-                ent:AddEntityRelationship( self, D_LI, 0 )
+            if ply:Alive() and ply.PlayerClassName == MetrocopClass.name then
+                ply.MetrocopLerpedFootStep = LerpFT(0.5, ply.MetrocopLerpedFootStep or 60,
+                    (not ply:IsSprinting() and (ply:KeyDown(IN_DUCK) or ply:KeyDown(IN_WALK))) and 20 or 60)
+                if IsValid(ply.FakeRagdoll) and ply:GetNetVar("lastFake") == 0 then return end
+                chr:EmitSound("npc/metropolice/gear" .. math.random(1, 6) .. ".wav", ply.MetrocopLerpedFootStep)
             end
-
-            if table.HasValue(rebels,ent:GetClass()) then
-                ent:AddEntityRelationship( self, D_HT, 99 )
-            end
-        end
-    end )
-
-    self.CurAppearance = appearance
-end
-
-function CLASS.Guilt(self, victim)
-    if CLIENT then return end
-
-    if victim:GetPlayerClass() == self:GetPlayerClass() then
-        return 1
+        end)
     end
-end
-
-function CLASS.PlayerDeath(self)
-
-    for k,v in ipairs(ents.FindByClass("npc_*")) do
-        if table.HasValue(combines,v:GetClass()) then
-            v:AddEntityRelationship( self, D_HT, 99 )
-        elseif table.HasValue(rebels,v:GetClass()) then
-            v:AddEntityRelationship( self, D_LI, 0 )
-        end
-    end
-
-    EmitSound( "npc/metropolice/die" .. math.random(1,4) .. ".wav", self:GetPos() )
-
-    hook.Remove( "OnEntityCreated", "relation_shipdo"..self:EntIndex())
-end
-
-if SERVER then
-	local mtcop_phrases = {}
-	local files,_ = file.Find("sound/npc/metropolice/vo/*.wav","GAME")
-	for k,v in ipairs(files) do
-		mtcop_phrases[k] = "npc/metropolice/vo/" .. v
-	end
-
-	hook.Add("HG_ReplacePhrase", "metropolice_phrase", function(ply, phrase, muffed, pitch)
-		if IsValid(ply) and ply.PlayerClassName == "Metrocop" then
-			return ply, mtcop_phrases[math.random(#mtcop_phrases)], muffed, pitch
-		end
-	end)
 end
 
 if CLIENT then
     local cmb_mat = Material("sprites/mat_jack_helmoverlay_r")
     hook.Add("PostDrawHUD","Metrocop_helmet",function()
         local lply = LocalPlayer()
-        if lply:Alive() and lply.PlayerClassName == "Metrocop" then
-            local role = lply:GetNWString("PlayerRole")
+        if lply:Alive() and lply.PlayerClassName == MetrocopClass.name then
 
             surface.SetDrawColor(150,190,190,255)
 
@@ -268,4 +179,4 @@ if CLIENT then
     end)
 end
 
-return CLASS
+MetrocopClass:SetHooks()
