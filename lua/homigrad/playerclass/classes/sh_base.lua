@@ -468,9 +468,10 @@ end
     --- Устанавливает роль (подкласс) игрока в Q-меню
     --- @protected
     --- @param ply Player
-    --- @param parameters? {color: {red: number, green: number, blue: number}} 
+    --- @param parameters? {name: string, color: {red: number, green: number, blue: number}} 
 function hg.PlayerClass:SetRole(ply, parameters)
     parameters = __AddDefault(parameters, {
+        name = (self.subclass and self.subclass.name) or self.name,
         color = {
             red = self.color.red,
             green = self.color.green,
@@ -478,7 +479,7 @@ function hg.PlayerClass:SetRole(ply, parameters)
         }
     })
 
-    local role = (self.subclass and self.subclass.name) or self.name
+    local role = parameters.name
     if zb and zb.GiveRole then
         zb.GiveRole(ply, role, Color(parameters.color.red, parameters.color.green, parameters.color.blue))
     end
