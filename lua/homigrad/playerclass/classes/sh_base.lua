@@ -282,6 +282,7 @@ function hg.PlayerClass:GetPrefix(parameters)
     end
 
     local prefix = __GetItemWithChance(parameters.prefixes)
+
     return prefix
 end
 
@@ -430,16 +431,17 @@ function hg.PlayerClass:SetName(ply, parameters)
     end
 
     if self.subclass.callsigns and next(self.subclass.callsigns) then
-        prefix = self:GetCallsign({
+        callsign = self:GetCallsign({
             callsigns = self.subclass.callsigns,
             numberedCallsigns = parameters.numberedCallsigns
         })
     elseif self.callsigns and next(self.callsigns) then
-        prefix = self:GetCallsign({
+        callsign = self:GetCallsign({
             callsigns = self.callsigns,
             numberedCallsigns = parameters.numberedCallsigns
         })
     end
+    
     ply:SetNWString("PlayerName", (prefix and prefix .. " " or "") .. (callsign and callsign .. " " or "") .. (name and name or ""))
 end
 
