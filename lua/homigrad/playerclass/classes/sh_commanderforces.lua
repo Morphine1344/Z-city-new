@@ -1,59 +1,82 @@
-local CLASS = player.RegClass("commanderforces")
+--- @class CommanderForcesClass : PlayerClass
+local CommanderForcesClass = hg.PlayerClass:Extend({
+    name = "commanderforces",
+    models = {
+        ["Male 01"] = "models/dejtriyev/enhancednatguard/male_01.mdl",
+        ["Male 02"] = "models/dejtriyev/enhancednatguard/male_02.mdl",
+        ["Male 03"] = "models/dejtriyev/enhancednatguard/male_03.mdl",
+        ["Male 04"] = "models/dejtriyev/enhancednatguard/male_04.mdl",
+        ["Male 05"] = "models/dejtriyev/enhancednatguard/male_05.mdl",
+        ["Male 06"] = "models/dejtriyev/enhancednatguard/male_06.mdl",
+        ["Male 07"] = "models/dejtriyev/enhancednatguard/male_07.mdl",
+        ["Male 08"] = "models/dejtriyev/enhancednatguard/male_08.mdl",
+        ["Male 09"] = "models/dejtriyev/enhancednatguard/male_09.mdl"
+    },
+    accessories = false,
+    color = {
+        red = 100,
+        green = 37,
+        blue = 54
+    }
+})
 
-function CLASS.Off(self)
-    if CLIENT then return end
+function CommanderForcesClass:On(ply)
+    if CLIENT then
+        return
+    end
+
+    self:SetAppearance(ply, {
+        subMaterial = false
+    })
+
+    self:SetupModel(ply, {
+        skin = math.random(0, 2)
+    })
+    self:SetupBodygroups(ply, {
+        bodygroups = {
+        headgear = 14,
+        ["Helmet Things"] = 0,
+        top = math.random(12, 13),
+        lower = math.random(12, 13),
+        vest = 0,
+        }
+    })
+
+    self:SetColor(ply)
+    self:SetName(ply)
+
 end
 
-local models = {}
-for i = 1, 9 do
-    table.insert(models,"models/dejtriyev/enhancednatguard/male_0"..i..".mdl")
-end
-
-
-function CLASS.On(self)
-    if CLIENT then return end
-    ApplyAppearance(self,nil,nil,nil,true)
-    local Appearance = self.CurAppearance or hg.Appearance.GetRandomAppearance()
-    Appearance.AAttachments = ""
-    Appearance.AClothes = ""
-    self:SetPlayerColor(Color(100,37,54):ToVector())
-    self:SetModel(models[math.random(#models)])
-    self:SetBodyGroups("000000000")
-    self:SetBodygroup(1,14)
-    self:SetBodygroup(3,12)
-    self:SetBodygroup(4,12)
-    self:SetSubMaterial()
-    self.CurAppearance = Appearance
-end
-
--- local function IsLookingAt(ply, targetVec)
---     if not IsValid(ply) or not ply:IsPlayer() then return false end
---     local diff = targetVec - ply:GetShootPos()
---     return ply:GetAimVector():Dot(diff) / diff:Length() >= 0.8 
--- end
-
-function CLASS.Guilt(self, Victim)
-    if CLIENT then return end
-
-    if Victim:GetPlayerClass() == self:GetPlayerClass() then
-        --self:ChatPrint("You killed your teammate!")
-        return 1
+function CommanderForcesClass:Off()
+    if CLIENT then
+        return
     end
 end
 
-hook.Add("HG_PlayerFootstep", "commanderforces_footsteps", function(ply, pos, foot, sound, volume, rf)
-	local chr = hg.GetCurrentCharacter(ply)
-	if ply:Alive() and ply.PlayerClassName == "commanderforces" then
-		local ent = hg.GetCurrentCharacter(ply)
+function CommanderForcesClass:PlayerDeath()
+    if CLIENT then
+        return
+    end
+end
 
-		if not (ply:IsWalking() or ply:Crouching()) and ent == ply then
-			local snd = "zcitysnd/" .. string.Replace(sound, "player/footsteps", "player/footsteps_military/")
-			if SoundDuration(snd) <= 0 then
-				snd = sound -- missing footsteps fix
-			end
-			EmitSound(snd, pos, ply:EntIndex(), CHAN_AUTO, volume, 75, nil, changePitch(math.random(95,105)) )
+function CommanderForcesClass:SetHooks()
+    if SERVER then
+        hook.Add("HG_PlayerFootstep", "commanderforces_footsteps", function(ply, pos, foot, sound, volume, rf)
+            if ply:Alive() and ply.PlayerClassName == CommanderForcesClass.name then
+                local ent = hg.GetCurrentCharacter(ply)
 
-			return true
-		end
-	end
-end)
+                if not (ply:IsWalking() or ply:Crouching()) and ent == ply then
+                    local snd = "zcitysnd/" .. string.Replace(sound, "player/footsteps", "player/footsteps_military/")
+                    if SoundDuration(snd) <= 0 then
+                        snd = sound -- missing footsteps fix
+                    end
+                    EmitSound(snd, pos, ply:EntIndex(), CHAN_AUTO, volume, 75, nil, changePitch(math.random(95, 105)))
+
+                    return true
+                end
+            end
+        end)
+    end
+end
+
+CommanderForcesClass:SetHooks()
