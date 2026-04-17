@@ -5,6 +5,7 @@
 --- @field prefixes? table<string, number> # Префиксы в имени игрока (сумма шансов не должна превышать 100)
 --- @field callsigns? string[] # Позывные в имени игрока
 --- @field models? table<string, string> # Модели
+--- @field subMaterials? {male: table<number, string>, female: table<number, string>} # Сабматериалы
 --- @field accessories? boolean | {attachments: {random: table, required: table }} # Аксессуары. Из таблицы random выдается ОДИН случайный аксессуар. Из таблицы required обязательно выдаются все аксессуары из нее.
 --- @field subclasses? table<string, table> # Может иметь все те же ключи, что и PlayerClass, кроме name. Если bodygroups должны быть динамичными, то нужно их вынести в отдельный метод, иначе они рандомно выберутся раз и навсегда.
 --- @field subclass? table # Сюда записывается выбранный subclass из subclasses
@@ -18,6 +19,10 @@ hg.PlayerClass = {
     prefixes = {},
     callsigns = {},
     models = {},
+    subMaterials = {
+        male = {},
+        female = {}
+    },
     accessories = {
         attachments = {
             random = {},
@@ -404,7 +409,7 @@ end
     --- @param parameters? { color: table }
 function hg.PlayerClass:SetColor(ply, parameters)
     parameters = __AddDefault(parameters, {
-        color = self.color
+        color = (self.subclass and self.subclass.color) or self.color
     })
     ply:SetPlayerColor(Color(parameters.color.red, parameters.color.green, parameters.color.blue):ToVector())
 end
@@ -600,6 +605,38 @@ function hg.PlayerClass:SetupBodygroups(ply, parameters)
     end
 end
 
+    --- Устанавливает сабматериалы
+    --- @protected
+    --- @param ply Player
+    --- @param parameters? {submaterials: {male: table<number, string>, female: table<number, string>}}
+function hg.PlayerClass:SetupSubMaterials(ply, parameters)
+    parameters = __AddDefault(parameters, {
+        subMaterials = (self.subclass and self.subclass.subMaterials) or self.subMaterials
+    })
+    
+    if not parameters.subMaterials or not next(parameters.subMaterials) then
+        return
+    end
+
+    local targetTable
+    if ThatPlyIsFemale(ply) then
+        targetTable = parameters.subMaterials.female
+    else 
+        targetTable = parameters.subMaterials.male
+    end
+
+    if type(targetTable) ~= "table" then
+        return 
+    end
+
+    for index, value in pairs(targetTable) do
+        if value == "nil" then
+            value = nil
+        end
+        ply:SetSubMaterial(tonumber(index), value)
+    end
+end
+
     --- Устанавливает модель игрока, выбирая подходящую из списка доступных.
     --- @protected
     --- @param ply Player
@@ -611,7 +648,7 @@ function hg.PlayerClass:SetupModel(ply, parameters)
     })
     local models = (self.subclass and self.subclass.models) or self.models
     if not models or not next(models) then
-        return error("Class " .. self.name .. " doesn't have any models")
+        return
     end
     local appearance = self:GetAppearance(ply)
     local modelKey = appearance.AModel
