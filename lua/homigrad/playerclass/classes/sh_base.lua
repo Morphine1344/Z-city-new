@@ -7,9 +7,9 @@
 --- @field models? table<string, string> # Модели
 --- @field subMaterials? {male: table<number, string>, female: table<number, string>} # Сабматериалы
 --- @field accessories? boolean | {attachments: {random: table, required: table }} # Аксессуары. Из таблицы random выдается ОДИН случайный аксессуар. Из таблицы required обязательно выдаются все аксессуары из нее.
+--- @field color? {red: number, green: number, blue: number} # Цвет игрока
 --- @field subclasses? table<string, table> # Может иметь все те же ключи, что и PlayerClass, кроме name. Если bodygroups должны быть динамичными, то нужно их вынести в отдельный метод, иначе они рандомно выберутся раз и навсегда.
 --- @field subclass? table # Сюда записывается выбранный subclass из subclasses
---- @field color? {red: number, green: number, blue: number} # Цвет игрока
 --- @field weapons? { primary: table<string, {chance: number, ammoMultiplier: number, ammoType: string, attachments: {grips: table<string, number>, magwells: table<string, number>, muzzles: table<string, number>, sights: table<string, number>, underbarrel: table<string, number>}}>, secondary: table<string, {chance: number, ammoMultiplier: number, ammoType: string, attachments: {grips: table<string, number>, magwells: table<string, number>, muzzles: table<string, number>, sights: table<string, number>, underbarrel: table<string, number>}}>, melee: table<string, number>, explosive: table<string, number> } # Оружие
 --- @field equipment? {armor: {helmets: table, masks: table, vests: table}, medicine: table, others: table} # Снаряжение
 --- @field npc? table<string, string[]> # Таблица NPC и их команда. TODO: вынести это в другой класс
@@ -390,7 +390,6 @@ end
     --- @param parameters? { subMaterial: boolean }
 function hg.PlayerClass:SetAppearance(ply, parameters)
     parameters = __AddDefault(parameters, {
-        -- Значения по умолчанию
         subMaterial = true,
     })
 
