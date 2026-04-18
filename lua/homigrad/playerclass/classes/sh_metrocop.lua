@@ -134,7 +134,6 @@ end
 
 function MetrocopClass:SetHooks()
     if SERVER then
-        
         hook.Add("HG_ReplacePhrase", "metrocop_phrase", function(ply, phrase, muffed, pitch)
             if IsValid(ply) and ply.PlayerClassName == MetrocopClass.name then
                 local phrases = {}
@@ -157,26 +156,25 @@ function MetrocopClass:SetHooks()
             end
         end)
     end
-end
 
-if CLIENT then
-    local cmb_mat = Material("sprites/mat_jack_helmoverlay_r")
-    hook.Add("PostDrawHUD","Metrocop_helmet",function()
-        local lply = LocalPlayer()
-        if lply:Alive() and lply.PlayerClassName == MetrocopClass.name then
+    if CLIENT then
+        local cmb_mat = Material("sprites/mat_jack_helmoverlay_r")
+        hook.Add("PostDrawHUD", "Metrocop_helmet", function()
+            local lply = LocalPlayer()
+            if lply:Alive() and lply.PlayerClassName == MetrocopClass.name then
+                surface.SetDrawColor(150, 190, 190, 255)
 
-            surface.SetDrawColor(150,190,190,255)
-
-            surface.SetMaterial(cmb_mat)
-            surface.DrawTexturedRectRotated(
-                (ScrW()/2) - 5,
-                (ScrH()/2) - 5,
-                ScrW() + 10,
-                ScrH() + 450,
-                180
-            )
-        end
-    end)
+                surface.SetMaterial(cmb_mat)
+                surface.DrawTexturedRectRotated(
+                    (ScrW() / 2) - 5,
+                    (ScrH() / 2) - 5,
+                    ScrW() + 10,
+                    ScrH() + 450,
+                    180
+                )
+            end
+        end)
+    end
 end
 
 MetrocopClass:SetHooks()
