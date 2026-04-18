@@ -537,23 +537,12 @@ function hg.PlayerClass:SetSubclass()
         return error("Class " .. self.name .. " doesn't have any subclasses")
     end
 
-    local chance = 0
-    for _, data in pairs(self.subclasses) do
-        chance = chance + (data.chance)
-    end
+    local subclassName = __GetItemWithChance(self.subclasses)
 
-    local roll = math.random() * chance
-    local currentChance = 0
+    self.subclass = self.subclasses[subclassName]
+    self.subclass["name"] = subclassName
 
-    for key, data in pairs(self.subclasses) do
-        currentChance = currentChance + (data.chance)
-
-        if roll <= currentChance then
-            self.subclass = data
-            self.subclass["name"] = key
-            return data --
-        end
-    end
+    return self.subclass
 end
 
     --- Устанавливает бодигруппы для определенного класса. Использовать, если бодигруппы случайные.
