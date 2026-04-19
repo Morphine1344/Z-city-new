@@ -530,13 +530,17 @@ end
 
     --- Устанавливает подкласс игрока.
     --- @protected
+    --- @param parameters? {name: string | nil}
     --- @return table | any
-function hg.PlayerClass:SetSubclass()
+function hg.PlayerClass:SetSubclass(parameters)
+    parameters = __AddDefault(parameters, {
+        name = nil
+    })
     if not self.subclasses or not next(self.subclasses) then
         return error("Class " .. self.name .. " doesn't have any subclasses")
     end
-
-    local subclassName = __GetItemWithChance(self.subclasses)
+    
+    local subclassName = (parameters and parameters.name) or __GetItemWithChance(self.subclasses)
 
     self.subclass = self.subclasses[subclassName]
     self.subclass["name"] = subclassName
