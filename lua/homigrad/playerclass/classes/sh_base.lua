@@ -10,7 +10,7 @@
 --- @field color? {red: number, green: number, blue: number} # Цвет игрока
 --- @field subclasses? table<string, table> # Может иметь все те же ключи, что и PlayerClass, кроме name. Если bodygroups должны быть динамичными, то нужно их вынести в отдельный метод, иначе они рандомно выберутся раз и навсегда.
 --- @field subclass? table # Сюда записывается выбранный subclass из subclasses
---- @field weapons? { primary: table<string, {chance: number, ammoMultiplier: number, ammoType: string, attachments: {grips: table<string, number>, magwells: table<string, number>, muzzles: table<string, number>, sights: table<string, number>, underbarrel: table<string, number>}}>, secondary: table<string, {chance: number, ammoMultiplier: number, ammoType: string, attachments: {grips: table<string, number>, magwells: table<string, number>, muzzles: table<string, number>, sights: table<string, number>, underbarrel: table<string, number>}}>, melee: table<string, number>, explosive: table<string, number> } # Оружие
+--- @field weapons? { primary: table<string, {chance: number, ammoMultiplier: number, ammoType: string, attachments: {grips: table<string, number>, magwells: table<string, number>, muzzles: table<string, number>, sights: table<string, number>, underbarrel: table<string, number>}}>, secondary: table<string, {chance: number, ammoMultiplier: number, ammoType: string, attachments: {grips: table<string, number>, magwells: table<string, number>, muzzles: table<string, number>, sights: table<string, number>, underbarrel: table<string, number>}}>, melee: table<string, number>, explosive: table<string, {count: integer}> } # Оружие
 --- @field equipment? {armor: {helmets: table, masks: table, vests: table}, medicine: table, others: table} # Снаряжение
 --- @field npc? table<string, string[]> # Таблица NPC и их команда. TODO: вынести это в другой класс
 --- @field relations? { npc: { friendly: string[], hostile: string[] } } # Таблица отношений. NPC: отношение NPC к игрокам friendly/hostile
@@ -306,19 +306,18 @@ function hg.PlayerClass:GiveLoadout(ply)
     local function giveWeapon(parameters)
         parameters = __AddDefault(parameters, {
             category = nil,
-            ammoMultiplier = 3
+            ammoMultiplier = 3,
+            count = 1
         })
         local source = (self.subclass.weapons and self.subclass.weapons[parameters.category]) or self.weapons[parameters.category]
 
-        if source and next(source) then
-            
-
+        if source and next(source) then 
             local weaponName = __GetItemWithChance(source)
-            
             local weapon = ply:Give(weaponName, false)
-
+            
             if IsValid(weapon) and source[weaponName] then
-
+                weapon.count = source[weaponName].count or parameters.count
+                
                 if source[weaponName].attachments then
                     for _, items in pairs(source[weaponName].attachments) do
                         if type(items) == "table" and next(items) then
