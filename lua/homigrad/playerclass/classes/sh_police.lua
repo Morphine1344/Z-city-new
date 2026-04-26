@@ -69,6 +69,9 @@ function PoliceClass:On(ply)
             ranks = self.subclass.bodygroups.ranks
         }
     })
+    self:SetRole(ply, {
+        name = "Police"
+    })
     self:SetColor(ply)
     self:SetName(ply)
 end
