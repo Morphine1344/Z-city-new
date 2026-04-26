@@ -95,63 +95,7 @@ hg.PlayerClass.__index = hg.PlayerClass
 --- @private
 --------------------------------------------------------------------------------
 
-    --- К переданным значениям добавляет значения по умолчанию.
-    --- @private
-    --- @generic T : table
-    --- @param input T | nil
-    --- @param defaults T
-    --- @return T
-local function __AddDefault(input, defaults)
-    input = input or {}
-    defaults = defaults or {}
-    for k, v in pairs(defaults) do
-        if input[k] == nil then
-            input[k] = v
-        end
-    end
-    return input
-end
-
-    --- Возвращает случайный ключ из таблицы на основе весов (поля chance или числовых значений)
-    --- @private
-    --- @param tbl table
-    --- @return string | nil
-local function __GetItemWithChance(tbl)
-    local _, value = next(tbl)
-    if type(tbl) == "table" and type(value) == "table" then
-        local totalWeight = 0
-
-        for _, data in pairs(tbl) do
-            totalWeight = totalWeight + (data.chance or (100 / table.Count(tbl)))
-        end
-
-        local roll = math.random() * totalWeight
-        local currentWeight = 0
-
-        for key, data in pairs(tbl) do
-            currentWeight = currentWeight + (data.chance or (100 / table.Count(tbl)))
-            if roll <= currentWeight then
-                return key
-            end
-        end
-
-    elseif type(tbl) == "table" and type(value) == "number" then
-        local totalWeight = 0
-        for _, value in pairs(tbl) do
-            totalWeight = totalWeight + value or (100 / table.Count(tbl))
-        end
-
-        local roll = math.random() * totalWeight
-        local currentChance = 0
-
-        for key, value in pairs(tbl) do
-            currentChance = currentChance + value or (100 / table.Count(tbl))
-            if roll <= currentChance then
-                return key
-            end
-        end
-    end
-end
+    --- Empty
 
 --------------------------------------------------------------------------------
 --- @abstract
@@ -188,6 +132,23 @@ end
 --------------------------------------------------------------------------------
 --- @protected
 --------------------------------------------------------------------------------
+
+    --- К переданным значениям добавляет значения по умолчанию.
+    --- @protected
+    --- @generic T : table
+    --- @param input T | nil
+    --- @param defaults T
+    --- @return T
+function hg.PlayerClass:AddDefault(input, defaults)
+    input = input or {}
+    defaults = defaults or {}
+    for k, v in pairs(defaults) do
+        if input[k] == nil then
+            input[k] = v
+        end
+    end
+    return input
+end
 
     --- Создает дочерний класс, наследуя свойства текущего.
     --- Регистрирует класс в системе и возвращает финальный объект.
@@ -265,7 +226,7 @@ end
     --- @param parameters? {prefixes: table}
     --- @return string | nil
 function hg.PlayerClass:GetCallsign(parameters)
-    parameters = __AddDefault(parameters, {
+    parameters = self:AddDefault(parameters, {
         callsigns = self.callsigns,
         numberedCallsigns = false
     })
@@ -282,18 +243,59 @@ function hg.PlayerClass:GetCallsign(parameters)
     return callsign
 end
 
+    --- Возвращает случайный ключ из таблицы на основе весов (поля chance или числовых значений)
+    --- @protected
+    --- @param tbl table
+    --- @return string | nil
+function hg.PlayerClass:GetItemWithChance(tbl)
+    local _, value = next(tbl)
+    if type(tbl) == "table" and type(value) == "table" then
+        local totalWeight = 0
+
+        for _, data in pairs(tbl) do
+            totalWeight = totalWeight + (data.chance or (100 / table.Count(tbl)))
+        end
+
+        local roll = math.random() * totalWeight
+        local currentWeight = 0
+
+        for key, data in pairs(tbl) do
+            currentWeight = currentWeight + (data.chance or (100 / table.Count(tbl)))
+            if roll <= currentWeight then
+                return key
+            end
+        end
+
+    elseif type(tbl) == "table" and type(value) == "number" then
+        local totalWeight = 0
+        for _, value in pairs(tbl) do
+            totalWeight = totalWeight + value or (100 / table.Count(tbl))
+        end
+
+        local roll = math.random() * totalWeight
+        local currentChance = 0
+
+        for key, value in pairs(tbl) do
+            currentChance = currentChance + value or (100 / table.Count(tbl))
+            if roll <= currentChance then
+                return key
+            end
+        end
+    end
+end
+
     --- Возвращает префикс.
     --- @param parameters? {prefixes: table}
     --- @return string | nil
 function hg.PlayerClass:GetPrefix(parameters)
-    parameters = __AddDefault(parameters, {
+    parameters = self:AddDefault(parameters, {
         prefixes = self.prefixes
     })
     if not parameters.prefixes or not next(parameters.prefixes) then
         return error("Class " .. self.name .. " doesn't have any prefixes")
     end
 
-    local prefix = __GetItemWithChance(parameters.prefixes)
+    local prefix = self:GetItemWithChance(parameters.prefixes)
 
     return prefix
 end
@@ -304,7 +306,7 @@ end
 function hg.PlayerClass:GiveLoadout(ply)
 
     local function giveWeapon(parameters)
-        parameters = __AddDefault(parameters, {
+        parameters = self:AddDefault(parameters, {
             category = nil,
             ammoMultiplier = 3,
             count = 1
@@ -312,7 +314,7 @@ function hg.PlayerClass:GiveLoadout(ply)
         local source = (self.subclass.weapons and self.subclass.weapons[parameters.category]) or self.weapons[parameters.category]
 
         if source and next(source) then 
-            local weaponName = __GetItemWithChance(source)
+            local weaponName = self:GetItemWithChance(source)
             local weapon = ply:Give(weaponName, false)
             
             if IsValid(weapon) and source[weaponName] then
@@ -321,7 +323,7 @@ function hg.PlayerClass:GiveLoadout(ply)
                 if source[weaponName].attachments then
                     for _, items in pairs(source[weaponName].attachments) do
                         if type(items) == "table" and next(items) then
-                            local randomAttachment = __GetItemWithChance(items)
+                            local randomAttachment = self:GetItemWithChance(items)
                             if randomAttachment ~= "nothing" then
                                 hg.AddAttachmentForce(ply, weapon, randomAttachment)
                             end
@@ -388,7 +390,7 @@ end
     --- @param ply Player
     --- @param parameters? { subMaterial: boolean }
 function hg.PlayerClass:SetAppearance(ply, parameters)
-    parameters = __AddDefault(parameters, {
+    parameters = self:AddDefault(parameters, {
         subMaterial = true,
     })
 
@@ -406,7 +408,7 @@ end
     --- @param ply Player
     --- @param parameters? { color: table }
 function hg.PlayerClass:SetColor(ply, parameters)
-    parameters = __AddDefault(parameters, {
+    parameters = self:AddDefault(parameters, {
         color = (self.subclass and self.subclass.color) or self.color
     })
     ply:SetPlayerColor(Color(parameters.color.red, parameters.color.green, parameters.color.blue):ToVector())
@@ -417,7 +419,7 @@ end
     --- @param ply Player
     --- @param parameters? { withName: boolean, numberedCallsigns: boolean }
 function hg.PlayerClass:SetName(ply, parameters)
-    parameters = __AddDefault(parameters, {
+    parameters = self:AddDefault(parameters, {
         withName = true,
         numberedCallsigns = false
     })
@@ -461,7 +463,7 @@ end
     --- @param ply Player
     --- @param parameters? {npc: table}
 function hg.PlayerClass:SetNpcRelationships(ply, parameters)
-    parameters = __AddDefault(parameters, {
+    parameters = self:AddDefault(parameters, {
         npc = {
             friendly = self.relations.npc.friendly,
             hostile = self.relations.npc.hostile
@@ -480,7 +482,7 @@ end
     --- @param ply Player
     --- @param parameters? {name: string, color: {red: number, green: number, blue: number}} 
 function hg.PlayerClass:SetRole(ply, parameters)
-    parameters = __AddDefault(parameters, {
+    parameters = self:AddDefault(parameters, {
         name = (self.subclass and self.subclass.name) or self.name,
         color = {
             red = self.color.red,
@@ -532,14 +534,14 @@ end
     --- @param parameters? {name: string | nil}
     --- @return table | any
 function hg.PlayerClass:SetSubclass(parameters)
-    parameters = __AddDefault(parameters, {
+    parameters = self:AddDefault(parameters, {
         name = nil
     })
     if not self.subclasses or not next(self.subclasses) then
         return error("Class " .. self.name .. " doesn't have any subclasses")
     end
     
-    local subclassName = (parameters and parameters.name) or __GetItemWithChance(self.subclasses)
+    local subclassName = (parameters and parameters.name) or self:GetItemWithChance(self.subclasses)
 
     self.subclass = self.subclasses[subclassName]
     self.subclass["name"] = subclassName
@@ -601,7 +603,7 @@ end
     --- @param ply Player
     --- @param parameters? {submaterials: {male: table<number, string>, female: table<number, string>}}
 function hg.PlayerClass:SetupSubMaterials(ply, parameters)
-    parameters = __AddDefault(parameters, {
+    parameters = self:AddDefault(parameters, {
         subMaterials = (self.subclass and self.subclass.subMaterials) or self.subMaterials
     })
     
@@ -634,7 +636,7 @@ end
     --- @param parameters? { skin: number }
 function hg.PlayerClass:SetupModel(ply, parameters)
     -- Значения по умолчанию
-    parameters = __AddDefault(parameters, {
+    parameters = self:AddDefault(parameters, {
         skin = 0
     })
     local models = (self.subclass and self.subclass.models) or self.models
@@ -666,7 +668,7 @@ end
     --- @param ply Player
     --- @param parameters? {npc: table}
 function hg.PlayerClass:UnsetNpcRelationships(ply, parameters)
-    parameters = __AddDefault(parameters, {
+    parameters = self:AddDefault(parameters, {
         npc = {
             friendly = self.relations.npc.hostile,
             hostile = self.relations.npc.friendly
