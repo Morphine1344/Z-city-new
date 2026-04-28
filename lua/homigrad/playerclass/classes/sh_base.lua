@@ -1,5 +1,4 @@
 --- @author Morphine
-
 --- @class PlayerClass
 --- @field name string # Название класса
 --- @field prefixes? table<string, number> # Префиксы в имени игрока (сумма шансов не должна превышать 100)
@@ -12,7 +11,7 @@
 --- @field subclass? table # Сюда записывается выбранный subclass из subclasses
 --- @field weapons? { primary: table<string, {chance: number, ammoMultiplier: number, ammoType: string, attachments: {grips: table<string, number>, magwells: table<string, number>, muzzles: table<string, number>, sights: table<string, number>, underbarrel: table<string, number>}}>, secondary: table<string, {chance: number, ammoMultiplier: number, ammoType: string, attachments: {grips: table<string, number>, magwells: table<string, number>, muzzles: table<string, number>, sights: table<string, number>, underbarrel: table<string, number>}}>, melee: table<string, number>, explosive: table<string, {count: integer}> } # Оружие
 --- @field equipment? {armor: {helmets: table, masks: table, vests: table}, medicine: table, others: table} # Снаряжение
---- @field npc? table<string, string[]> # Таблица NPC и их команда. TODO: вынести это в другой класс
+--- @field npc? table<string, string[]> # Таблица NPC и их команда.
 --- @field relations? { npc: { friendly: string[], hostile: string[] } } # Таблица отношений. NPC: отношение NPC к игрокам friendly/hostile
 hg.PlayerClass = {
     name = "base",
@@ -126,7 +125,7 @@ end
     --- @protected
     --- @abstract
 function hg.PlayerClass:SetHooks()
-    error("Abstract method \"Hooks\" must be realised in " .. self.name)
+    error("Abstract method \"SetHooks\" must be realised in " .. self.name)
 end
 
 --------------------------------------------------------------------------------

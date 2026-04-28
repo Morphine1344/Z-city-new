@@ -4,7 +4,6 @@ local DefaultClass = hg.PlayerClass:Extend({
     accessories = true
 })
 
-
 function DefaultClass:On(ply)
     if CLIENT then
         return

@@ -452,7 +452,6 @@ function CombineClass:SetHooks()
     end
 end
 
-
 function CombineClass:PlayerHud()
     if not CLIENT then return end
 
