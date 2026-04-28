@@ -199,7 +199,7 @@ function CombineClass:SetHooks()
     if SERVER then
         
         hook.Add("HG_ReplacePhrase", "Combine_phrase", function(ply, phrase, muffed, pitch)
-            if IsValid(ply) and ply.PlayerClassName == CombineClass.name then
+            if IsValid(ply) and ply.PlayerClassName == self.name then
                 local cmb_phrases = {
                     "npc/combine_soldier/vo/reportingclear.wav",
                     "npc/combine_soldier/vo/ripcordripcord.wav",
@@ -233,7 +233,7 @@ function CombineClass:SetHooks()
 
         hook.Add("HG_PlayerFootstep", "Combine_footsteps", function(ply)
             local chr = hg.GetCurrentCharacter(ply)
-            if ply:Alive() and ply.PlayerClassName == CombineClass.name then
+            if ply:Alive() and ply.PlayerClassName == self.name then
                 ply.CombineLerpedFootStep = LerpFT(0.5, ply.CombineLerpedFootStep or 60,
                     (not ply:IsSprinting() and (ply:KeyDown(IN_DUCK) or ply:KeyDown(IN_WALK))) and 20 or 60)
                 if IsValid(ply.FakeRagdoll) and ply:GetNetVar("lastFake") == 0 then return end
@@ -242,7 +242,7 @@ function CombineClass:SetHooks()
         end)
 
         hook.Add("HG_CanThoughts", "Combine_canThoughts", function(ply)
-            if ply.PlayerClassName == CombineClass.name then
+            if ply.PlayerClassName == self.name then
                 return false
             end
         end)
@@ -253,8 +253,8 @@ function CombineClass:SetHooks()
             local nearPlayers = ents.FindInSphere(ply:GetPos(), 300)
             
             for _, mate in ipairs(nearPlayers) do
-                if mate:IsPlayer() and mate ~= ply and mate:Alive() and mate.PlayerClassName == CombineClass.name then
-                    if ply:Alive() and not ply.organism.otrub and ply.PlayerClassName == CombineClass.name and wep.ShellEject ~= "ShotgunShellEject" then
+                if mate:IsPlayer() and mate ~= ply and mate:Alive() and mate.PlayerClassName == self.name then
+                    if ply:Alive() and not ply.organism.otrub and ply.PlayerClassName == self.name and wep.ShellEject ~= "ShotgunShellEject" then
                         local phrases = {
                             "npc/combine_soldier/vo/coverme.wav",
                             "npc/combine_soldier/vo/coverhurt.wav"
@@ -274,13 +274,13 @@ function CombineClass:SetHooks()
         util.AddNetworkString("CombineChatMessage")
 
         hook.Add("HG_PlayerCanHearPlayersVoice", "CombineRadio", function(listener, talker)
-            if talker.PlayerClassName == CombineClass.name and listener.PlayerClassName == CombineClass.name and talker:Alive() then
+            if talker.PlayerClassName == self.name and listener.PlayerClassName == self.name and talker:Alive() then
                 return true, false
             end
         end)
 
         hook.Add("HG_PlayerSay", "CombineChatMessage", function(ply, txtTbl, text)
-            if ply.PlayerClassName == CombineClass.name and ply:Alive() and not ply.organism.otrub then
+            if ply.PlayerClassName == self.name and ply:Alive() and not ply.organism.otrub then
                 local radioSounds = {
                     off = {
                         "npc/combine_soldier/vo/off1.wav",
@@ -307,29 +307,29 @@ function CombineClass:SetHooks()
         }
 
         hook.Add("PlayerStartVoice", "CombineRadioStart", function(ply)
-            if ply.PlayerClassName == CombineClass.name and ply:Alive() then
+            if ply.PlayerClassName == self.name and ply:Alive() then
                 ply:EmitSound(radioSounds.on[math.random(#radioSounds.on)])
             end
         end)
         
         hook.Add("PlayerEndVoice", "CombineRadioEnd", function(ply)
-            if ply.PlayerClassName == CombineClass.name and ply:Alive() then
+            if ply.PlayerClassName == self.name and ply:Alive() then
                 ply:EmitSound(radioSounds.off[math.random(#radioSounds.off)])
             end
         end)
 
         hook.Add("HG_NoSoundproof", "CombineNoSoundproof", function(pPly, lply)
-            if pPly.PlayerClassName == CombineClass.name and pPly:Alive() and lply.PlayerClassName == CombineClass.name and lply:Alive() then
+            if pPly.PlayerClassName == self.name and pPly:Alive() and lply.PlayerClassName == self.name and lply:Alive() then
                 return true
             end
         end)
 
         hook.Add("ZC_DisableShootTinnitus", "NoCombineTinnitus", function(lply)
-            if lply.PlayerClassName == CombineClass.name then return true end
+            if lply.PlayerClassName == self.name then return true end
         end)
 
         hook.Add("ZC_BodyTemperature", "CombineSuitWarming", function(ply, org, timeValue, changeRate, MaxWarmMul, warmLoseMul)
-            if ply.PlayerClassName == CombineClass.name then
+            if ply.PlayerClassName == self.name then
                 return changeRate, MaxWarmMul + 0.5, warmLoseMul - 0.4
             end
         end)
@@ -359,7 +359,7 @@ function CombineClass:SetHooks()
 
         local function togglePNV()
             local ply = LocalPlayer()
-            if ply.PlayerClassName ~= CombineClass.name or not ply:Alive() then
+            if ply.PlayerClassName ~= self.name or not ply:Alive() then
                 if pnv_enabled then
                     pnv_enabled = false
                     surface.PlaySound("items/nvg_off.wav")
@@ -379,7 +379,7 @@ function CombineClass:SetHooks()
                 transitioning = true
                 surface.PlaySound("items/nvg_on.wav")
                 hook.Add("RenderScreenspaceEffects", "PNV_ColorCorrection_Dynamic", function()
-                    if ply.PlayerClassName ~= CombineClass.name then return end
+                    if ply.PlayerClassName ~= self.name then return end
                     local progress = math.min((CurTime() - transition_start) / transition_time, 1)
                     local class = ply:GetNWString("PlayerRole")
                     local cc = (class == "Elite" or class == "Shotgunner") and table.Copy(pnv_color_2) or table.Copy(pnv_color_1)
@@ -401,7 +401,7 @@ function CombineClass:SetHooks()
 
         hook.Add("RenderScreenspaceEffects", "PNV_ColorCorrection", function()
             local ply = LocalPlayer()
-            if ply.PlayerClassName ~= CombineClass.name then return end
+            if ply.PlayerClassName ~= self.name then return end
             if pnv_enabled and not transitioning then
                 local class = ply:GetNWString("PlayerRole")
                 local cc = (class == "Elite" or class == "Shotgunner") and pnv_color_2 or pnv_color_1
@@ -412,7 +412,7 @@ function CombineClass:SetHooks()
 
         hook.Add("PreDrawHalos", "PNV_Light", function()
             local ply = LocalPlayer()
-            if ply.PlayerClassName ~= CombineClass.name then return end
+            if ply.PlayerClassName ~= self.name then return end
             if pnv_enabled then
                 if not IsValid(pnv_light) then
                     pnv_light = ProjectedTexture()
@@ -434,14 +434,14 @@ function CombineClass:SetHooks()
 
         hook.Add("Think", "PNV_Think", function()
             local ply = LocalPlayer()
-            if ply:Alive() and ply.PlayerClassName == CombineClass.name then
+            if ply:Alive() and ply.PlayerClassName == self.name then
                 if input.IsKeyDown(KEY_F) and not gui.IsGameUIVisible() and not IsValid(vgui.GetKeyboardFocus()) and (CurTime() > next_toggle_time) then
                     togglePNV()
                     next_toggle_time = CurTime() + toggle_cooldown
                 end
             end
             if not ply:Alive() and pnv_enabled then togglePNV() end
-            if ply.PlayerClassName ~= CombineClass.name and pnv_enabled then togglePNV() end
+            if ply.PlayerClassName ~= self.name and pnv_enabled then togglePNV() end
 
             if pnv_enabled and IsValid(pnv_light) then
                 pnv_light:SetPos(ply:EyePos())
@@ -506,7 +506,7 @@ function CombineClass:PlayerHud()
     end
 
 
-    function CombineClass.HUDPaint(ply)
+    function CombineClass:HUDPaint(ply)
         local lply = LocalPlayer()
         local frt = FrameTime() * 5
         local role = ply:GetNWString("PlayerRole")
@@ -615,7 +615,7 @@ function CombineClass:PlayerHud()
 
     hook.Add("HUDPaint", "CombineClass_HUD_Render", function()
         local lply = LocalPlayer()
-        if not IsValid(lply) or not lply:Alive() or lply.PlayerClassName ~= CombineClass.name then return end
+        if not IsValid(lply) or not lply:Alive() or lply.PlayerClassName ~= self.name then return end
 
 
         local role = lply:GetNWString("PlayerRole")

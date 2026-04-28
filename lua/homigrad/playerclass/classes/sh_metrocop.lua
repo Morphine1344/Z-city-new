@@ -116,7 +116,7 @@ function MetrocopClass:PlayerDeath(ply)
 
     local function playDeathSound(ply)
 
-        if IsValid(ply) and ply.PlayerClassName == MetrocopClass.name then
+        if IsValid(ply) then
             local sounds = {
                 "npc/metropolice/die1.wav",
                 "npc/metropolice/die2.wav",
@@ -129,13 +129,13 @@ function MetrocopClass:PlayerDeath(ply)
     end
 
     playDeathSound(ply)
-
+    
 end
 
 function MetrocopClass:SetHooks()
     if SERVER then
         hook.Add("HG_ReplacePhrase", "metrocop_phrase", function(ply, phrase, muffed, pitch)
-            if IsValid(ply) and ply.PlayerClassName == MetrocopClass.name then
+            if IsValid(ply) and ply.PlayerClassName == self.name then
                 local phrases = {}
                 local files, _ = file.Find("sound/npc/metropolice/vo/*.wav", "GAME")
                 for key, value in ipairs(files) do
@@ -148,7 +148,7 @@ function MetrocopClass:SetHooks()
         hook.Add("HG_PlayerFootstep", "metrocop_footsteps", function(ply, pos, foot, sound, volume, rf)
             local chr = hg.GetCurrentCharacter(ply)
 
-            if ply:Alive() and ply.PlayerClassName == MetrocopClass.name then
+            if ply:Alive() and ply.PlayerClassName == self.name then
                 ply.MetrocopLerpedFootStep = LerpFT(0.5, ply.MetrocopLerpedFootStep or 60,
                     (not ply:IsSprinting() and (ply:KeyDown(IN_DUCK) or ply:KeyDown(IN_WALK))) and 20 or 60)
                 if IsValid(ply.FakeRagdoll) and ply:GetNetVar("lastFake") == 0 then return end
@@ -161,7 +161,7 @@ function MetrocopClass:SetHooks()
         local cmb_mat = Material("sprites/mat_jack_helmoverlay_r")
         hook.Add("PostDrawHUD", "Metrocop_helmet", function()
             local lply = LocalPlayer()
-            if lply:Alive() and lply.PlayerClassName == MetrocopClass.name then
+            if lply:Alive() and lply.PlayerClassName == self.name then
                 surface.SetDrawColor(150, 190, 190, 255)
 
                 surface.SetMaterial(cmb_mat)
